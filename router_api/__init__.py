@@ -20,11 +20,20 @@ db_session = scoped_session(
 )
 
 # Set up the api
+api_prefix = '/0.1'
+
 # TEMP: Don't really wanna use flask restless (just for quick and dirty testing)
 from flask.ext.restless import APIManager
 manager = APIManager(app, session=db_session)
 
-# Create API endpoints, which will be available at /api/<tablename> by default.
+# Patching API manager to use api_prefix on all routes
+_old_create_api_blueprint = manager.create_api_blueprint
+def _patched_create_api_blueprint(*args, **kwargs):
+    kwargs['url_prefix'] = api_prefix
+    return _old_create_api_blueprint(*args, **kwargs)
+manager.create_api_blueprint = _patched_create_api_blueprint
+
+# Create API endpoints, which will be available at /0.1/<tablename> by default.
 manager.create_api(models.Account, methods=['GET', 'POST', 'DELETE'])
 manager.create_api(models.User, methods=['GET', 'POST', 'DELETE'])
 manager.create_api(models.Network, methods=['GET', 'POST', 'DELETE'])
