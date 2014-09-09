@@ -11,6 +11,17 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
+# We need to be able to load our app, so play with the path
+import os, sys
+sys.path.append(os.path.realpath(os.curdir))
+
+# Update the sqlalchemy connection string from our app config
+import router_api
+config.set_main_option(
+    'sqlalchemy.url', 
+    router_api.app.config['SQLALCHEMY_DATABASE_URI']
+)
+
 # add your model's MetaData object here
 # for 'autogenerate' support
 from router_api import models

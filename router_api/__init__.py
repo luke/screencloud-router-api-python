@@ -1,4 +1,5 @@
 from flask import Flask
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from . import default_settings
@@ -14,6 +15,6 @@ db_engine = create_engine(
     convert_unicode=True
 )
 db_session = scoped_session(
-    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 )
 
