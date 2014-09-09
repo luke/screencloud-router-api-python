@@ -71,7 +71,6 @@ class User(IdentifierMixin, TimestampMixin, Base):
     __tablename__ = 'users'
 
     # accounts via backref on Account
-    
 
 
 class Network(IdentifierMixin, TimestampMixin, Base):
