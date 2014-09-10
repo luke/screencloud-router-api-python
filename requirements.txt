@@ -1,8 +1,12 @@
-Flask==0.10.1
-Jinja2==2.7.3
+Mako==1.0.0
 MarkupSafe==0.23
 SQLAlchemy==0.9.7
 Werkzeug==0.9.6
-distribute==0.6.34
-itsdangerous==0.24
-schematics==0.9-5
+alembic==0.6.7
+cosmic==0.4.2
+ipython==2.2.0
+isodate==0.5.0
+psycopg2==2.5.4
+requests==2.4.1
+teleport==0.2.1
+wsgiref==0.1.2

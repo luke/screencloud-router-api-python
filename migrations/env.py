@@ -16,15 +16,15 @@ import os, sys
 sys.path.append(os.path.realpath(os.curdir))
 
 # Update the sqlalchemy connection string from our app config
-import router_api
+import screencloud
 config.set_main_option(
     'sqlalchemy.url', 
-    router_api.app.config['SQLALCHEMY_DATABASE_URI']
+    screencloud.config['SQLALCHEMY_DATABASE_URI']
 )
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from router_api import models
+from screencloud import models
 target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -57,8 +57,8 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    import router_api
-    engine = router_api.db_engine
+    import screencloud
+    engine = screencloud.db_engine
     connection = engine.connect()
     context.configure(
                 connection=connection,
