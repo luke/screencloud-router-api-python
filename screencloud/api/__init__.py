@@ -1,7 +1,7 @@
 from cosmic.api import API
-from . import models
+from .resources import accounts
 
 def create(name):
     api = API(name)
-    models.attach_to_api(api)
+    api.model(accounts.Accounts)
     return api

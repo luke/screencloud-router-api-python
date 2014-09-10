@@ -24,7 +24,7 @@ config.set_main_option(
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from screencloud import models
+from screencloud.sql import models
 target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -58,7 +58,7 @@ def run_migrations_online():
 
     """
     import screencloud
-    engine = screencloud.db_engine
+    engine = screencloud.sql.create_engine()
     connection = engine.connect()
     context.configure(
                 connection=connection,
