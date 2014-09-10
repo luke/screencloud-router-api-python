@@ -6,7 +6,7 @@ from screencloud.sql import models
 
 def main():
     print('You asked for it.  Dropping and re-creating all tables...')
-    engine = sql.create_engine()
+    engine = sql.engine
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
 

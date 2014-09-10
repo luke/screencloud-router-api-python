@@ -6,9 +6,9 @@ from cosmic.exceptions import NotFound
 
 from screencloud.sql import models, session
 
-model = models.Account
+model = models.User
 
-class Accounts(BaseModel):
+class Users(BaseModel):
     methods = ['get_by_id', 'create', 'update', 'get_list']
     properties = [
         required('name', String)

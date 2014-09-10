@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Table, Column, DateTime, CHAR, Index
+from sqlalchemy import Table, Column, DateTime, CHAR, Index, String
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import backref, relationship
@@ -25,6 +25,8 @@ def generate_uuid():
 class IdentifierMixin(object):
     id = Column(UUID, primary_key=True, default=generate_uuid)
 
+class NameMixin(object):
+    name = Column(String)
 
 class TimestampMixin(object):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -83,7 +85,7 @@ class ModelBase(Base):
     __abstract__ = True
 
 
-class Account(IdentifierMixin, TimestampMixin, ModelBase):
+class Account(IdentifierMixin, NameMixin, TimestampMixin, ModelBase):
     __tablename__ = 'accounts'
 
     users = relationship(
@@ -93,13 +95,13 @@ class Account(IdentifierMixin, TimestampMixin, ModelBase):
     )
 
 
-class User(IdentifierMixin, TimestampMixin, ModelBase):
+class User(IdentifierMixin, NameMixin, TimestampMixin, ModelBase):
     __tablename__ = 'users'
 
     # accounts via backref on Account
 
 
-class Network(IdentifierMixin, TimestampMixin, HasAccountMixin, HasNetworkMixin, ModelBase):
+class Network(IdentifierMixin, NameMixin, TimestampMixin, HasAccountMixin, HasNetworkMixin, ModelBase):
     __tablename__ = 'networks'
 
 
