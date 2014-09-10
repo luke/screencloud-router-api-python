@@ -11,7 +11,8 @@ model = models.User
 class Users(BaseModel):
     methods = ['get_by_id', 'create', 'update', 'get_list']
     properties = [
-        required('name', String)
+        required('name', String),
+        required('email', String),
     ]
 
     @classmethod

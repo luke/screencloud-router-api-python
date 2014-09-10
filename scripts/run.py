@@ -1,12 +1,13 @@
 import sys, os
 sys.path.append(os.path.realpath(os.pardir))
 
+from werkzeug.serving import run_simple
 import screencloud.api
-import screencloud.config
 
+# Dev server
 def main():
-    api = screencloud.api.create('screencloud')
-    api.run(debug=screencloud.config['DEBUG'], use_reloader=True)
+    server = screencloud.api.create_server('screencloud')
+    run_simple('', 5000, server.wsgi_app, use_reloader=True)
 
 if __name__ == '__main__':
     main()
