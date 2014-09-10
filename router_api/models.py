@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Table, Column, DateTime, CHAR
+from sqlalchemy import Table, Column, DateTime, CHAR, Index
 from sqlalchemy import ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import backref, relationship
 
 Base = declarative_base()
@@ -25,6 +25,7 @@ def generate_uuid():
 class IdentifierMixin(object):
     id = Column(UUID, primary_key=True, default=generate_uuid)
 
+
 class TimestampMixin(object):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
@@ -41,6 +42,26 @@ class TimestampMixin(object):
     deleted_at._creation_order = 9999
 
 
+class HasAccountMixin(object):
+    @declared_attr
+    def account_id(cls):
+        return Column('account_id', ForeignKey('accounts.id'))
+
+    @declared_attr
+    def account(cls):
+        return relationship('Account')
+
+
+class HasNetworkMixin(object):
+    @declared_attr
+    def network_id(cls):
+        return Column('network_id', ForeignKey('networks.id'))
+
+    @declared_attr
+    def network(cls):
+        return relationship('Network')
+
+
 # -----------------------------------------------------------------------------
 # Associations
 # -----------------------------------------------------------------------------
@@ -54,10 +75,15 @@ accounts_users_table = Table(
 
 
 # -----------------------------------------------------------------------------
-# Models
+# Models (TODO: indexes)
 # -----------------------------------------------------------------------------
 
-class Account(IdentifierMixin, TimestampMixin, Base):
+# Base for anything generically useful
+class ModelBase(Base):
+    __abstract__ = True
+
+
+class Account(IdentifierMixin, TimestampMixin, ModelBase):
     __tablename__ = 'accounts'
 
     users = relationship(
@@ -67,54 +93,23 @@ class Account(IdentifierMixin, TimestampMixin, Base):
     )
 
 
-class User(IdentifierMixin, TimestampMixin, Base):
+class User(IdentifierMixin, TimestampMixin, ModelBase):
     __tablename__ = 'users'
 
     # accounts via backref on Account
 
 
-class Network(IdentifierMixin, TimestampMixin, Base):
+class Network(IdentifierMixin, TimestampMixin, HasAccountMixin, HasNetworkMixin, ModelBase):
     __tablename__ = 'networks'
 
 
-class Screen(IdentifierMixin, TimestampMixin, Base):
+class Screen(IdentifierMixin, TimestampMixin, HasAccountMixin, HasNetworkMixin, ModelBase):
     __tablename__ = 'screens'
 
 
-class App(IdentifierMixin, TimestampMixin, Base):
+class App(IdentifierMixin, TimestampMixin, HasAccountMixin, ModelBase):
     __tablename__ = 'apps'
 
 
-class AppInstance(IdentifierMixin, TimestampMixin, Base):
+class AppInstance(IdentifierMixin, TimestampMixin, ModelBase):
     __tablename__ = 'app_instances'
-
-
-
-
-# type Identified struct {
-#       Id string `gorm:"primary_key:yes" sql:"type:uuid primary key default uuid_generate_v4()" json:"id" binding:"required"`
-# }
-
-# type Timestamped struct {
-#       CreatedAt time.Time `json:"created_at"`
-#       UpdatedAt time.Time `json:"updated_at"`
-#       DeletedAt time.Time `json:"deleted_at"`
-# }
-
-# type Associated struct {
-#       Owner     UUID     `json:"owner" binding:"required"`
-#       Group     []string `json:"group"`
-#       AccountId UUID     `json:"account_id"`
-# }
-
-# type Named struct {
-#       Name string `json:"name" binding:"required"`
-# }
-
-# type Located struct {
-#       PlaceId UUID `json:"place_id"`
-# }
-
-# type Networked struct {
-#       NetworkId string `sql:"type:uuid" json:"network_id"`
-# }

@@ -10,6 +10,7 @@ app = Flask(__name__.split('.')[0], instance_relative_config=True)
 app.config.from_object(default_settings)
 app.config.from_pyfile('settings.py')
 
+
 # Setup the db connection
 db_engine = create_engine(
     app.config['SQLALCHEMY_DATABASE_URI'], 
@@ -19,8 +20,14 @@ db_session = scoped_session(
     sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 )
 
+# Tidy up connection
+@app.teardown_request
+def cleanup_db_connection(exception):
+    db_session.close()
+
+
 # Set up the api
-api_prefix = '/0.1'
+api_prefix = ''
 
 # TEMP: Don't really wanna use flask restless (just for quick and dirty testing)
 from flask.ext.restless import APIManager
@@ -33,7 +40,7 @@ def _patched_create_api_blueprint(*args, **kwargs):
     return _old_create_api_blueprint(*args, **kwargs)
 manager.create_api_blueprint = _patched_create_api_blueprint
 
-# Create API endpoints, which will be available at /0.1/<tablename> by default.
+# Create API endpoints, which will be available at /<tablename> by default.
 manager.create_api(models.Account, methods=['GET', 'POST', 'DELETE'])
 manager.create_api(models.User, methods=['GET', 'POST', 'DELETE'])
 manager.create_api(models.Network, methods=['GET', 'POST', 'DELETE'])
