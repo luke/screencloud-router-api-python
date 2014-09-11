@@ -56,27 +56,6 @@ class HasNetworkMixin(object):
         return relationship('Network')
 
 
-
-# -----------------------------------------------------------------------------
-# Associations
-# -----------------------------------------------------------------------------
-
-class OwnershipAssociation(Base):
-    __tablename__ = "ownerships"
-
-    account_id = Column(UUID, primary_key=True)
-    related_type = Column(String, primary_key=True)
-    related_id = Column(UUID, primary_key=True)    
-
-    @classmethod
-    def creator(cls, related_type):
-        """Provide a 'creator' function to use with the association proxy."""
-        return lambda accounts:OwnershipAssociation(
-            accounts=accounts,
-            related_type=related_type
-        )
-
-
 class IsOwnedMixin(object):
     @declared_attr
     def _account_association(cls):
@@ -92,8 +71,31 @@ class IsOwnedMixin(object):
             'OwnershipAssociation',
             primaryjoin=lambda: cls.id==OwnershipAssociation.related_id,
             foreign_keys=[OwnershipAssociation.related_id],
-            backref=backref('related_obj_%s' % cls.__name__.lower(), uselist=False)
+            backref=backref('related_obj_%s' % cls.__name__.lower(), uselist=False),
+            cascade='all, delete-orphan'
         )
+
+
+# -----------------------------------------------------------------------------
+# Associations
+# -----------------------------------------------------------------------------
+
+# Anything can be owned by an account (or multiple accounts)
+class OwnershipAssociation(Base):
+    __tablename__ = "ownerships"
+
+    account_id = Column(UUID, primary_key=True)
+    related_type = Column(String, primary_key=True)
+    related_id = Column(UUID, primary_key=True)    
+
+    @classmethod
+    def creator(cls, related_type):
+        """Provide a 'creator' function to use with the association proxy."""
+        return lambda accounts:OwnershipAssociation(
+            accounts=accounts,
+            related_type=related_type
+        )
+
 
 
 # -----------------------------------------------------------------------------
@@ -123,11 +125,12 @@ class ModelBase(Base):
 class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
     __tablename__ = 'accounts'
 
-    _ownerships = relationship(
+    ownerships = relationship(
         'OwnershipAssociation',
         primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
         foreign_keys=[OwnershipAssociation.account_id],
-        backref=backref('accounts')
+        backref=backref('accounts'),
+        cascade='all, delete-orphan'
     )
 
 
