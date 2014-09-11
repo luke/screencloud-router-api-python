@@ -58,7 +58,6 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    # engine = screencloud.sql.create_engine()
     engine = screencloud.sql.engine
     connection = engine.connect()
     context.configure(

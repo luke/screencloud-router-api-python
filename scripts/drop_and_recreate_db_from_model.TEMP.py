@@ -1,6 +1,8 @@
 import sys, os
 sys.path.append(os.path.realpath(os.pardir))
 
+from sqlalchemy.databases import postgres
+
 from screencloud import sql
 from screencloud.sql import models
 
