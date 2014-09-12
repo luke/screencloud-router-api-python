@@ -146,6 +146,10 @@ class Screen(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, Mod
     __tablename__ = 'screens'
 
 
+class Channel(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
+    __tablename__ = 'channels'
+
+
 class App(IdentifierMixin, TimestampMixin, IsOwnedMixin, NameMixin, ModelBase):
     __tablename__ = 'apps'
 
