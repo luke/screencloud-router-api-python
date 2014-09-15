@@ -29,7 +29,6 @@ class CustomServer(Server):
         try:
             # Authenticate the request
 
-
             # Authorize the request
 
             # Run the API view

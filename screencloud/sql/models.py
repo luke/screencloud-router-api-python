@@ -58,20 +58,55 @@ class HasNetworkMixin(object):
 
 class IsOwnedMixin(object):
     @declared_attr
-    def _account_association(cls):
+    def _account_associations(cls):
+        # Value we use for the 'related_type' field of the ownerships table.
         related_type = cls.__tablename__
 
+        # Name of the attribute we attach to the OwnershipAssociation to
+        # reference objects of the class we're being mixed-into.
+        # E.g. ownership_association.related_obj_user
+        proxy_related_attr_name = 'related_obj_%s' % cls.__name__.lower()
+
+        # Add attributes onto the Account object so that we can use the
+        # ownership association proxy stuff from that side too.
+        # E.g. account.users.append(u)
+        setattr(
+            Account,
+            '_%s_associations' % related_type,
+            relationship(
+                'OwnershipAssociation',
+                primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
+                foreign_keys=[OwnershipAssociation.account_id],
+                cascade='all, delete-orphan'
+            )
+        )
+        setattr(
+            Account,
+            related_type,
+            association_proxy(
+                '_%s_associations' % related_type,
+                proxy_related_attr_name,
+                creator=OwnershipAssociation.creator(
+                    related_type, 
+                    proxy_related_attr_name
+                )
+            )
+        )
+
+
+        # Add the accounts attribute to this mixed-into class, using the
+        # ownerships association_proxy.
         cls.accounts = association_proxy(
-            '_account_association',
-            'accounts',
-            creator=OwnershipAssociation.creator(related_type)
+            '_account_associations',
+            'account',
+            creator=OwnershipAssociation.creator(related_type, 'account')
         )
 
         return relationship(
             'OwnershipAssociation',
             primaryjoin=lambda: cls.id==OwnershipAssociation.related_id,
             foreign_keys=[OwnershipAssociation.related_id],
-            backref=backref('related_obj_%s' % cls.__name__.lower(), uselist=False),
+            backref=backref(proxy_related_attr_name, uselist=False),
             cascade='all, delete-orphan'
         )
 
@@ -86,15 +121,19 @@ class OwnershipAssociation(Base):
 
     account_id = Column(UUID, primary_key=True)
     related_type = Column(String, primary_key=True)
-    related_id = Column(UUID, primary_key=True)    
+    related_id = Column(UUID, primary_key=True)
 
     @classmethod
-    def creator(cls, related_type):
+    def creator(cls, related_type, attr):
         """Provide a 'creator' function to use with the association proxy."""
-        return lambda accounts:OwnershipAssociation(
-            accounts=accounts,
-            related_type=related_type
-        )
+
+        def create_ownership_association(obj):
+            oa = OwnershipAssociation(related_type=related_type)
+            setattr(oa, attr, obj)
+            return oa
+
+        return lambda obj: create_ownership_association(obj)
+
 
 
 
@@ -129,7 +168,7 @@ class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
         'OwnershipAssociation',
         primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
         foreign_keys=[OwnershipAssociation.account_id],
-        backref=backref('accounts'),
+        backref=backref('account'),
         cascade='all, delete-orphan'
     )
 
