@@ -6,7 +6,7 @@ from screencloud import api
 
 # Dev server
 def main():
-    app = api.create_app('screencloud')
+    app = api.create_wsgi_app('screencloud')
     run_simple('', 5000, app, use_reloader=True)
 
 if __name__ == '__main__':
