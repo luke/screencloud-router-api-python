@@ -1,14 +1,16 @@
 from flask.ext.restful import Resource
 
 from screencloud.sql import models
-from ...api import g
+from .. import g, schemas
 
 class List(Resource):
     def get(self):
         pass
 
     def post(self):
-        pass
+        obj = schemas.Account(g.request.get_json())
+        obj.validate()
+        return obj
 
 
 class Item(Resource):
