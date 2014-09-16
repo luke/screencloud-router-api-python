@@ -1,5 +1,7 @@
 import json
+
 from flask import make_response
+
 from . import schemas
 
 def to_json(data, code, headers=None):

@@ -1,6 +1,5 @@
-from werkzeug.wsgi import DispatcherMiddleware
 from flask import Flask, request
-from flask.ext.restful import Api
+from flask.ext.restful import Api as BaseApi, abort
 
 from screencloud import config, sql, redis
 from . import g, local_manager
@@ -10,9 +9,9 @@ from . import actions
 from .resources import accounts
 
 
-class CustomApi(Api):
+class Api(BaseApi):
     def __init__(self, *args, **kwargs):
-        super(CustomApi, self).__init__(*args, **kwargs)
+        super(Api, self).__init__(*args, **kwargs)
         self.representations = {
             'application/json': representations.to_json,
             'application/hal+json': representations.to_hal_json
@@ -40,7 +39,7 @@ class CustomApi(Api):
             kwargs.pop('public')
             self.public_endpoints.add(kwargs['endpoint'])
 
-        return super(CustomApi, self).add_resource(resource, *urls, **kwargs)
+        return super(Api, self).add_resource(resource, *urls, **kwargs)
 
 
 
@@ -50,7 +49,7 @@ def create_wsgi_app(name):
 
     app = Flask(name)
     app.config.update(config)
-    api = CustomApi(
+    api = Api(
         app,
         prefix='',
         default_mediatype='application/json',
@@ -61,7 +60,7 @@ def create_wsgi_app(name):
     def attach_globals():
         g.request = request
         g.sql = sql.session_factory()
-        g.redis = redis.client_factory()
+        g.redis = redis.client_factory(shared_pool=True)
 
     @app.teardown_request
     def cleanup(exc):
@@ -71,10 +70,16 @@ def create_wsgi_app(name):
 
     @app.before_request
     def br_authenticate():
+        if request.endpoint not in api.endpoints:
+            return
         if request.endpoint in api.public_endpoints:
             return
-        if request.endpoint in api.endpoints:
-            raise NotImplementedError('Authentication')
+        g.auth = authentication.lookup(
+            g.redis, 
+            g.request.headers.get('Authorization', None)
+        )
+        if not g.auth:
+            abort(401)
 
     @app.before_request
     def br_authorize():

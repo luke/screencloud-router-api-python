@@ -13,7 +13,16 @@ class Model(BaseModel):
         return super(Model, self).__init__(raw_data, deserialize_mapping, strict)
 
 
-class Account(Model):
+class HalModel(Model):
+    """Instances of HalModel should be capable of being represented in
+    application/hal+json form.
+
+    See ``screencloud.api.representations``
+    """
+    pass
+
+
+class Account(HalModel):
     id = StringType()
     name = StringType(required=True)
     created_at = DateTimeType()

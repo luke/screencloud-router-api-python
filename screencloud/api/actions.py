@@ -1,7 +1,11 @@
 from flask.ext.restful import Resource
 
-from . import g, schemas
+from screencloud.common import utils
+from . import g, authentication
 
 class Tokens(Resource):
     def post(self):
-        return 'hi'
+        token = authentication.create_anonymous_token(g.redis)
+        return {
+            'token': token
+        }

@@ -8,9 +8,12 @@ class List(Resource):
         pass
 
     def post(self):
-        obj = schemas.Account(g.request.get_json())
-        obj.validate()
-        return obj
+        acc = schemas.Account(g.request.get_json())
+        acc.validate()
+        db_acc = models.Account(**acc.to_native())
+        g.sql.add(db_acc)
+        g.sql.commit()
+        return schemas.Account(db_acc.__dict__)
 
 
 class Item(Resource):
