@@ -5,7 +5,7 @@ from . import g, authentication
 
 class Tokens(Resource):
     def post(self):
-        token = authentication.create_anonymous_token(g.redis)
+        token = authentication.create_anonymous_token()
         return {
             'token': token
         }

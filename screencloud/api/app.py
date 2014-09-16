@@ -56,33 +56,44 @@ def create_wsgi_app(name):
         catch_all_404s=True
     )
 
+
     @app.before_request
     def attach_globals():
+        """Attach useful, request-long, objects to the global g."""
         g.request = request
         g.sql = sql.session_factory()
         g.redis = redis.client_factory(shared_pool=True)
 
+
     @app.teardown_request
     def cleanup(exc):
+        """Ensure any used resources are cleaned up after the request."""
         if exc:
             g.sql.rollback()
         g.sql.close()
 
+
     @app.before_request
     def br_authenticate():
-        if request.endpoint not in api.endpoints:
+        """Attach an Authentication object to the global at `g.auth`.
+
+        Don't check routes outside the api, or routes declared public.
+        (Set `g.auth = None` in this case, and carry on)
+        """
+        if request.endpoint not in (api.endpoints - api.public_endpoints):
+            g.auth = None
             return
-        if request.endpoint in api.public_endpoints:
-            return
+
         g.auth = authentication.lookup(
-            g.redis, 
             g.request.headers.get('Authorization', None)
         )
         if not g.auth:
             abort(401)
 
+
     @app.before_request
     def br_authorize():
+        #TODO: ... acl stuff ...
         pass
 
 

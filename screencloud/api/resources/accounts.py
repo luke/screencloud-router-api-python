@@ -1,4 +1,4 @@
-from flask.ext.restful import Resource
+from flask.ext.restful import Resource, abort
 
 from screencloud.sql import models
 from .. import g, schemas
@@ -8,12 +8,19 @@ class List(Resource):
         pass
 
     def post(self):
-        acc = schemas.Account(g.request.get_json())
-        acc.validate()
-        db_acc = models.Account(**acc.to_native())
-        g.sql.add(db_acc)
+        # Can only create an account with anonymous auth
+        if not g.auth.is_anonymous:
+            abort(403)
+
+        schema = schemas.Account(g.request.get_json())
+        schema.validate()
+        model = models.Account(**schema.to_native(role='post'))
+        g.sql.add(model)
         g.sql.commit()
-        return schemas.Account(db_acc.__dict__)
+
+        # Make 
+
+        return schema
 
 
 class Item(Resource):
