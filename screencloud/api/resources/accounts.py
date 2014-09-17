@@ -1,5 +1,6 @@
-from flask.ext.restful import Resource, abort
+from flask.ext.restful import Resource
 
+from screencloud.common import exceptions
 from screencloud.sql import models
 from .. import g, schemas
 
@@ -10,7 +11,7 @@ class List(Resource):
     def post(self):
         # Can only create an account with anonymous auth
         if not g.auth.is_anonymous:
-            abort(403)
+            raise exceptions.AuthorizationError
 
         schema = schemas.Account(g.request.get_json())
         schema.validate()

@@ -1,5 +1,6 @@
 from flask import Flask, request
-from flask.ext.restful import Api as BaseApi, abort
+from flask.ext.restful import Api as BaseApi
+import schematics.exceptions
 
 from screencloud import config, sql, redis
 from screencloud.common import exceptions
@@ -54,12 +55,23 @@ class Api(BaseApi):
         """
         Handle standard expections raised in the app and respond appropriately.
         """
+        def make_response(data, code):
+            data.update({'status': code})
+            return representations.to_json(data, code)
 
         if isinstance(err, exceptions.AuthenticationError):
-            abort(401)
+            return make_response({'message': 'Unauthorized',}, 401)
 
         if isinstance(err, exceptions.AuthorizationError):
-            abort(403)
+            return make_response({'message': 'Forbidden',}, 403)
+
+        if isinstance(err, schematics.exceptions.ValidationError):
+            return make_response(
+                {
+                    'message': 'Bad Request',
+                    'errors': err.message
+                }, 400
+            )
 
         return super(Api, self).handle_error(err)
 
