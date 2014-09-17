@@ -1,47 +1,31 @@
-from __future__ import unicode_literals
-
-from cosmic.types import required, String, DateTime
-from cosmic.models import BaseModel
-from cosmic.exceptions import NotFound
+from flask.ext.restful import Resource, abort
 
 from screencloud.sql import models
-from ...api import g
+from .. import g, schemas
 
-model = models.Account
+class List(Resource):
+    def get(self):
+        pass
 
-class Accounts(BaseModel):
-    methods = ['get_by_id', 'create', 'update', 'get_list']
-    properties = [
-        required('name', String)
-    ]
+    def post(self):
+        # Can only create an account with anonymous auth
+        if not g.auth.is_anonymous:
+            abort(403)
 
-    @classmethod
-    def get_by_id(cls, id):
-        obj = g.sql_session.query(model).get(id)
-        if not obj:
-            raise NotFound
-        return obj.__dict__
+        schema = schemas.Account(g.request.get_json())
+        schema.validate()
+        model = models.Account(**schema.to_native(role='post'))
+        g.sql.add(model)
+        g.sql.commit()
 
-    @classmethod
-    def create(cls, **patch):
-        obj = model(**patch)
-        g.sql_session.add(obj)
-        g.sql_session.commit()
-        return (obj.id, obj.__dict__)
+        # Make 
 
-    @classmethod
-    def update(cls, id, **patch):
-        obj = g.sql_session.query(model).get(id)
-        if not obj:
-            raise NotFound
-        obj = model(**patch)
-        g.sql_session.add(obj)
-        g.sql_session.commit()
-        return obj.__dict__
+        return schema
 
-    @classmethod
-    def get_list(cls):
-        return [
-            (obj.id, obj.__dict__) 
-            for obj in g.sql_session.query(model).all()
-        ]
+
+class Item(Resource):
+    def get(self, id):
+        pass
+
+    def patch(self, id):
+        pass
