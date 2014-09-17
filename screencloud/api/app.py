@@ -7,7 +7,7 @@ from screencloud.common import exceptions
 from . import g, local_manager
 from . import representations
 from .auth import scopes, authentication, authorization
-from . import actions, resources
+from . import actions, resources, views
 
 
 class Api(BaseApi):
@@ -37,7 +37,7 @@ class Api(BaseApi):
 
         We also add additional kwarg options:
 
-          public (::Bool) Specify that the resource doesn't need auth checked.
+          public (bool): Specify that the resource doesn't need auth checked.
 
         """
         if 'endpoint' not in kwargs:
@@ -56,8 +56,9 @@ class Api(BaseApi):
         Handle standard expections raised in the app and respond appropriately.
         """
         def make_response(data, code):
-            data.update({'status': code})
-            return representations.to_json(data, code)
+            resp = {'status': code}
+            resp.update(data)
+            return representations.to_json(resp, code)
 
         if isinstance(err, exceptions.AuthenticationError):
             return make_response({'message': 'Unauthorized',}, 401)
@@ -123,7 +124,8 @@ def create_wsgi_app(name):
         Doesn't check routes outside the api, or routes declared public.
         (Sets `g.auth = None` in this case)
 
-        Raises AuthenticationError.
+        Raises:
+            AuthenticationError.
         """
         if request.endpoint not in (api.endpoints - api.public_endpoints):
             g.auth = None
@@ -146,6 +148,10 @@ def create_wsgi_app(name):
 
     # Attach the api action routes (not necessarily RESTy)
     api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
+    api.add_resource(actions.tokens.Login, '/tokens/login', public=True)
+
+    # Attach non-api routes
+    app.register_blueprint(views.testing.bp, url_prefix='/testing')
 
     # Werkzeug middleware to ensure a clean 'g' object per request.
     app.wsgi_app = local_manager.make_middleware(app.wsgi_app)

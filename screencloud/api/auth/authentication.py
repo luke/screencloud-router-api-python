@@ -23,7 +23,8 @@ def create_anonymous_token():
     """
     Generate an auth token with anonymous scope and persist (redis).
 
-    Returns the generated token string.
+    Returns:
+        The generated token string.
     """
     token = uuid.uuid4().hex
     key = keys.authentication_token(token)
@@ -37,9 +38,12 @@ def create_anonymous_token():
 
 def lookup(token, update_timestamp=True):
     """
-    
+    Lookup the given token string in the auth store (redis).
 
-    Raises AuthenticationError.
+    Returns:
+        An Authentication model object.
+    Raises:
+        AuthenticationError.
     """
 
     # Lookup the token in redis
@@ -86,8 +90,10 @@ def get_token_from_header(header):
     """
     Inspect the given header value and retrieve the token from it.
 
-    Returns the token string.
-    Raises AuthenticationError.
+    Returns:
+        The token string.
+    Raises:
+        AuthenticationError.
     """
     if not header:
         raise AuthenticationError('Bad Header')

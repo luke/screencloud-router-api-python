@@ -10,3 +10,7 @@ class Anonymous(Resource):
         return {
             'token': token
         }
+
+class Login(Resource):
+    def post(self):
+        raise NotImplementedError
