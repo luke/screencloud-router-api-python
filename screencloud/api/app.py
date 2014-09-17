@@ -6,8 +6,7 @@ from screencloud.common import exceptions
 from . import g, local_manager
 from . import representations
 from .auth import scopes, authentication, authorization
-from . import actions
-from .resources import accounts
+from . import actions, resources
 
 
 class Api(BaseApi):
@@ -35,8 +34,10 @@ class Api(BaseApi):
         everytime we call api.add_resource.  This is also helpful when using
         fields.Url().
 
-        We also add an additional kwarg 'public::Bool' to specify that the
-        resource doesn't need auth checked.
+        We also add additional kwarg options:
+
+          public (::Bool) Specify that the resource doesn't need auth checked.
+
         """
         if 'endpoint' not in kwargs:
             mod_name, cls_name = resource.__module__, resource.__name__
@@ -96,9 +97,10 @@ def create_wsgi_app(name):
         """
         Ensure any used resources are cleaned up after the request.
         """
-        if exc:
-            g.sql.rollback()
-        g.sql.close()
+        if g.sql:
+            if exc:
+                g.sql.rollback()
+            g.sql.close()
 
 
     @app.before_request
@@ -127,11 +129,11 @@ def create_wsgi_app(name):
 
 
     # Attach the api REST resource routes
-    api.add_resource(accounts.List, '/accounts')
-    api.add_resource(accounts.Item, '/accounts/<string:id>')
+    api.add_resource(resources.accounts.List, '/accounts')
+    api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
 
     # Attach the api action routes (not necessarily RESTy)
-    api.add_resource(actions.Tokens, '/tokens', public=True)
+    api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
 
     # Werkzeug middleware to ensure a clean 'g' object per request.
     app.wsgi_app = local_manager.make_middleware(app.wsgi_app)
