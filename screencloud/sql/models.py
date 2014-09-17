@@ -1,9 +1,11 @@
 import uuid
 from datetime import datetime
+from collections import namedtuple
 
 from sqlalchemy import (
     Table, Column, DateTime, CHAR, Index, String, and_, ForeignKey
 )
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import backref, relationship, foreign, column_property
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -87,7 +89,7 @@ class IsOwnedMixin(object):
                 '_%s_associations' % related_type,
                 proxy_related_attr_name,
                 creator=OwnershipAssociation.creator(
-                    related_type, 
+                    related_type,
                     proxy_related_attr_name
                 )
             )
@@ -125,8 +127,9 @@ class OwnershipAssociation(Base):
 
     @classmethod
     def creator(cls, related_type, attr):
-        """Provide a 'creator' function to use with the association proxy."""
-
+        """
+        Provide a 'creator' function to use with the association proxy.
+        """
         def create_ownership_association(obj):
             oa = OwnershipAssociation(related_type=related_type)
             setattr(oa, attr, obj)
@@ -141,27 +144,20 @@ class OwnershipAssociation(Base):
 # Models (TODO: indexes)
 # -----------------------------------------------------------------------------
 
-# Base for anything generically useful.
 class ModelBase(Base):
+    """
+    Base SQLAlchemy Model for anything generically useful.
+    """
     __abstract__ = True
-
-    # TODO: __declare_last__ isn't being called, I'm probably doing something silly
-    # @classmethod
-    # def __declare_last__(cls):
-    #     import logging
-    #     logging.warn(cls)
-    #     # Merge together all the mapper_args and table_args from the mixins.
-    #     cls.__mapper_args__ = dict()
-    #     cls.__table_args__ = dict()
-    #     Hmmm -- this won't work anyway, t is a type
-    #     for t in reversed(cls.__mro__):
-    #         if '__mapper_args__' in t:
-    #             cls.__mapper_args__.update(t.__mapper_args__)
-    #         if '__table_args__' in t:
-    #             cls.__table_args__.update(t.__table_args__)
 
 
 class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
+    """
+    An account in the system.
+
+    This is the main access control object.  Most other objects in the system
+    are associated to accounts via the IsOwnedMixin.
+    """
     __tablename__ = 'accounts'
 
     ownerships = relationship(
@@ -174,7 +170,46 @@ class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
 
 
 class User(IdentifierMixin, TimestampMixin, IsOwnedMixin, NameMixin, ModelBase):
+    """
+    A user in the system.
+    """
     __tablename__ = 'users'
+
+    email = Column(String)
+
+
+class UserIdentity(TimestampMixin, ModelBase):
+    """
+    A way for a user to identify themselves.
+
+    E.g:
+        UserIdentity(
+            type=UserIdentity.TYPES.BASIC,
+            identifier='a-username',
+            data={"password": "some-secret"}
+        )
+
+        UserIdentity(
+            type=UserIdentity.TYPES.GOOGLE,
+            identifier='some-google-identifier',
+            data={...}
+        )
+    """
+    __tablename__ = 'user_identities'
+
+    TYPES = namedtuple(
+        'UserIdentityTypes',
+        ['BASIC', 'GOOGLE']
+    )('basic', 'google')
+
+    type = Column(String, primary_key=True)
+    identifier = Column(String, primary_key=True)
+    data = Column(JSON)
+    user_id = Column(UUID, ForeignKey(User.id))
+    user = relationship(
+        User,
+        backref=backref('identities', cascade='all, delete-orphan')
+    )
 
 
 class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, ModelBase):
