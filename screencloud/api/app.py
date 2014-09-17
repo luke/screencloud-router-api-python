@@ -2,14 +2,19 @@ from flask import Flask, request
 from flask.ext.restful import Api as BaseApi, abort
 
 from screencloud import config, sql, redis
+from screencloud.common import exceptions
 from . import g, local_manager
 from . import representations
-from . import authentication, authorization
+from .auth import scopes, authentication, authorization
 from . import actions
 from .resources import accounts
 
 
 class Api(BaseApi):
+    """
+    Customized subclass of the flask-restful Api.
+    """
+
     def __init__(self, *args, **kwargs):
         super(Api, self).__init__(*args, **kwargs)
         self.representations = {
@@ -18,8 +23,10 @@ class Api(BaseApi):
         }
         self.public_endpoints = set()
 
+
     def add_resource(self, resource, *urls, **kwargs):
-        """Add a resource endpoint to the api.
+        """
+        Add a resource endpoint to the api.
 
         We patch the flask-restful version to use {module}.{class_name} for the
         endpoint (it just does class_name by default).  Otherwise we can't name
@@ -42,10 +49,27 @@ class Api(BaseApi):
         return super(Api, self).add_resource(resource, *urls, **kwargs)
 
 
+    def handle_error(self, err):
+        """
+        Handle standard expections raised in the app and respond appropriately.
+        """
+
+        if isinstance(err, exceptions.AuthenticationError):
+            abort(401)
+
+        if isinstance(err, exceptions.AuthorizationError):
+            abort(403)
+
+        return super(Api, self).handle_error(err)
+
+
+
 
 
 def create_wsgi_app(name):
-    """Create a WSGI app for this API."""
+    """
+    Create a WSGI app for this API.
+    """
 
     app = Flask(name)
     app.config.update(config)
@@ -59,7 +83,9 @@ def create_wsgi_app(name):
 
     @app.before_request
     def attach_globals():
-        """Attach useful, request-long, objects to the global g."""
+        """
+        Attach useful, request-long, objects to the global g.
+        """
         g.request = request
         g.sql = sql.session_factory()
         g.redis = redis.client_factory(shared_pool=True)
@@ -67,7 +93,9 @@ def create_wsgi_app(name):
 
     @app.teardown_request
     def cleanup(exc):
-        """Ensure any used resources are cleaned up after the request."""
+        """
+        Ensure any used resources are cleaned up after the request.
+        """
         if exc:
             g.sql.rollback()
         g.sql.close()
@@ -75,20 +103,21 @@ def create_wsgi_app(name):
 
     @app.before_request
     def br_authenticate():
-        """Attach an Authentication object to the global at `g.auth`.
+        """
+        Attach an Authentication object to the global at `g.auth`.
 
-        Don't check routes outside the api, or routes declared public.
-        (Set `g.auth = None` in this case, and carry on)
+        Doesn't check routes outside the api, or routes declared public.
+        (Sets `g.auth = None` in this case)
+
+        Raises AuthenticationError.
         """
         if request.endpoint not in (api.endpoints - api.public_endpoints):
             g.auth = None
             return
 
-        g.auth = authentication.lookup(
-            g.request.headers.get('Authorization', None)
-        )
-        if not g.auth:
-            abort(401)
+        header = g.request.headers.get('Authorization', None)
+        token = authentication.get_token_from_header(header)
+        g.auth = authentication.lookup(token)
 
 
     @app.before_request

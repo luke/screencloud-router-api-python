@@ -2,16 +2,14 @@ from collections import namedtuple
 import uuid
 
 from screencloud.common import utils
+from screencloud.common.exceptions import AuthenticationError
 from screencloud.redis import keys
 from screencloud.sql import models
-from . import g
-
-#: Token scopes
-ANONYMOUS = 'anonymous'
-ACCOUNT = 'account'
+from . import scopes
+from .. import g
 
 #: Authentication model to pass around
-Auth = namedtuple(
+Authentication = namedtuple(
     'Authentication', 
     [
         'is_anonymous',
@@ -22,40 +20,41 @@ Auth = namedtuple(
 )
 
 def create_anonymous_token():
+    """
+    Generate an auth token with anonymous scope and persist (redis).
+
+    Returns the generated token string.
+    """
     token = uuid.uuid4().hex
     key = keys.authentication_token(token)
     data = {
-        'scope': ANONYMOUS,
+        'scope': scopes.ANONYMOUS,
         'last_accessed': utils.timestamp(),
     }
     g.redis.hmset(key, data)
     return token
 
 
-def lookup(auth_header, update_timestamp=True):
-    # Verify the header
-    if not auth_header:
-        return None
-    splits = auth_header.split()
-    if len(splits) != 2:
-        return None
-    auth_type, token = splits
-    if auth_type != 'Bearer':
-        return None
+def lookup(token, update_timestamp=True):
+    """
+    
+
+    Raises AuthenticationError.
+    """
 
     # Lookup the token in redis
     key = keys.authentication_token(token)
     data = g.redis.hgetall(key)
 
     if not data:
-        return None
+        raise AuthenticationError
 
     if update_timestamp:
         g.redis.hset(key, 'last_accessed', utils.timestamp())
 
     # Return valid anonymous auth
-    if data['scope'] == ANONYMOUS:
-        return Auth(
+    if data['scope'] == scopes.ANONYMOUS:
+        return Authentication(
             is_anonymous=True,
             scope=data['scope'],
             token=token,
@@ -72,12 +71,30 @@ def lookup(auth_header, update_timestamp=True):
     if not account or account.deleted_at:
         # That token's no good anymore.  Get rid of it.
         g.redis.delete(key)
-        return None
+        raise AuthenticationError
 
     # Return valid auth
-    return Auth(
+    return Authentication(
         is_anonymous=True,
         scope=data['scope'],
         token=token,
         account=account,
     )
+
+
+def get_token_from_header(header):
+    """
+    Inspect the given header value and retrieve the token from it.
+
+    Returns the token string.
+    Raises AuthenticationError.
+    """
+    if not header:
+        raise AuthenticationError('Bad Header')
+    splits = header.split()
+    if len(splits) != 2:
+        raise AuthenticationError('Bad Header')
+    auth_type, token = splits
+    if auth_type != 'Bearer':
+        raise AuthenticationError('Bad Header')
+    return token

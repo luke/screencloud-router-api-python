@@ -1,7 +1,8 @@
 from flask.ext.restful import Resource
 
 from screencloud.common import utils
-from . import g, authentication
+from .auth import authentication
+from . import g
 
 class Tokens(Resource):
     def post(self):
