@@ -7,11 +7,15 @@ SQLAlchemy==0.9.7
 Werkzeug==0.9.6
 alembic==0.6.7
 aniso8601==0.83
+gunicorn==19.1.1
 hiredis==0.1.4
+httplib2==0.9
 ipython==2.2.0
 itsdangerous==0.24
+oauth2client==1.2
 psycopg2==2.5.4
 pytz==2014.7
 redis==2.10.3
+schematics==0.9-5
 six==1.8.0
 wsgiref==0.1.2

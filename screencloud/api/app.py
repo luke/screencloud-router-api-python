@@ -55,25 +55,30 @@ class Api(BaseApi):
         """
         Handle standard expections raised in the app and respond appropriately.
         """
-        def make_response(data, code):
+        def make_response(data, code, headers):
             resp = {'status': code}
             resp.update(data)
-            return representations.to_json(resp, code)
+            return representations.to_json(resp, code, headers)
 
         if isinstance(err, exceptions.AuthenticationError):
-            return make_response({'message': 'Unauthorized',}, 401)
+            return make_response(
+                {'message': 'Unauthorized'},
+                401,
+                {'WWW-Authenticate': 'Bearer realm="%s"' % self.app.name}
+            )
 
         if isinstance(err, exceptions.AuthorizationError):
-            return make_response({'message': 'Forbidden',}, 403)
+            return make_response({'message': 'Forbidden',}, 403, {})
 
         if isinstance(err, schematics.exceptions.ValidationError):
             return make_response(
                 {
                     'message': 'Bad Request',
                     'errors': err.message
-                }, 400
+                }, 400, {}
             )
 
+        # Fall through to parent handler
         return super(Api, self).handle_error(err)
 
 
@@ -93,6 +98,8 @@ def create_wsgi_app(name):
         default_mediatype='application/json',
         catch_all_404s=True
     )
+    g.app = app
+    g.api = api
 
 
     @app.before_request

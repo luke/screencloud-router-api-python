@@ -6,7 +6,10 @@ class AuthenticationError(Error):
     """ """
     pass
 
-
 class AuthorizationError(Error):
+    """ """
+    pass
+
+class InputError(Error):
     """ """
     pass
