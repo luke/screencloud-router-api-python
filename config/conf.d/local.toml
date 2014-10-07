@@ -1,0 +1,10 @@
+[template]
+src = "local.py.tmpl"
+dest = "/srv/app/screencloud/config/local.py"
+keys = [
+  "/debug",
+  "/sql_db_uri",
+  "/redis_db_uri",
+  "/oauth/clients/google/id",
+  "/oauth/clients/google/secret",
+]

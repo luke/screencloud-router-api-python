@@ -8,14 +8,14 @@ else:
     exit(1001)
 
 from werkzeug.serving import run_simple
-from screencloud.api import app
+from screencloud.api.app import create_wsgi_app
 
 #: The wsgi app...
-wsgi_app = app.create_wsgi_app('screencloud')
+application = create_wsgi_app('screencloud')
 
 # Dev server
 def main():
-    run_simple('', 5000, wsgi_app, use_reloader=True)
+    run_simple('', 5000, application, use_reloader=True)
 
 if __name__ == '__main__':
     main()

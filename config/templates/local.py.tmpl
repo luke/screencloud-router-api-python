@@ -1,0 +1,9 @@
+DEBUG = {{ getv "/debug" }}
+SQL_DB_URI = '{{ getv "/sql_db_uri" }}'
+REDIS_DB_URI = '{{ getv "/redis_db_uri" }}'
+OAUTH_CLIENTS = {
+    'google': {
+        'client_id': '{{ getv "/oauth/clients/google/id" }}',
+        'client_secret': '{{ getv "/oauth/clients/google/secret" }}',
+    }
+}
