@@ -1,0 +1,28 @@
+[Unit]
+Description=screencloud/router-api docker image builder
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=CODE_DIR=/tmp/router-api-build BUILD_NAME=screencloud/router-api
+
+# Make sure we have the latest code 
+ExecStartPre=-/bin/bash -c "git clone https://github.com/screencloud/screencloud-router-api-python.git $CODE_DIR"
+ExecStartPre=/bin/bash -c "cd $CODE_DIR; git reset --hard HEAD"
+ExecStartPre=/bin/bash -c "cd $CODE_DIR; git checkout master"
+ExecStartPre=/bin/bash -c "cd $CODE_DIR; git reset --hard HEAD"
+ExecStartPre=/bin/bash -c "cd $CODE_DIR; git pull origin master"
+
+# List out the tags of our current docker images. And check if we already have
+# one tagged with the current git commit hash.  If so, we fail here -- we don't
+# need to build it again.
+ExecStartPre=/bin/bash -c "cd $CODE_DIR; docker images $BUILD_NAME | awk '{print $2}' | grep $(git rev-parse HEAD); test $? != 0"
+
+# Run the actual docker build.  We do it twice so we have it tagged both
+# 'latest' and also by the git commit hash. (The second build shouldn't really
+# have to do anything much due to caching.)
+ExecStart=/bin/bash -c "cd $CODE_DIR; docker build -t $BUILD_NAME .; docker build -t $BUILD_NAME:$(git rev-parse HEAD) ."
+
+# Restart the actual router-api service
+ExecStartPost=systemctl restart router-api

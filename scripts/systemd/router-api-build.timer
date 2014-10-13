@@ -1,0 +1,11 @@
+[Unit]
+Description=Trigger screencloud/router-api builds
+After=docker.service
+Requires=docker.service
+
+[Timer]
+OnActiveSec=0
+OnUnitActiveSec=60
+
+[Install]
+WantedBy=multi-user.target

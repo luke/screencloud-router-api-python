@@ -1,0 +1,17 @@
+[Unit]
+Description=Screencloud Router API service
+After=etcd.service
+After=docker.service
+Requires=router-api-build.service
+
+[Service]
+TimeoutStartSec=0
+KillMode=none
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/systemctl start router-api-build.service
+ExecStartPre=-/usr/bin/docker kill router-api
+ExecStartPre=-/usr/bin/docker rm router-api
+ExecStart=/usr/bin/docker run --name router-api -p ${COREOS_PUBLIC_IPV4}:8080:5000 -e CONFD_BACKEND=etcd screencloud/router-api
+
+[Install]
+WantedBy=multi-user.target
