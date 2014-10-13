@@ -25,4 +25,4 @@ ExecStartPre=/bin/bash -c "cd $CODE_DIR; docker images $BUILD_NAME | awk '{print
 ExecStart=/bin/bash -c "cd $CODE_DIR; docker build -t $BUILD_NAME .; docker build -t $BUILD_NAME:$(git rev-parse HEAD) ."
 
 # Restart the actual router-api service
-ExecStartPost=systemctl restart router-api
+ExecStartPost=/usr/bin/systemctl restart router-api
