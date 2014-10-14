@@ -9,7 +9,7 @@ KillMode=none
 EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker kill router-api
 ExecStartPre=-/usr/bin/docker rm router-api
-ExecStart=/usr/bin/docker run --name router-api CONFD_BACKEND=etcd screencloud/router-api
+ExecStart=/usr/bin/docker run --name router-api -e CONFD_BACKEND=etcd screencloud/router-api
 ExecStop=/usr/bin/docker stop router-api
 RestartSec=30
 Restart=always
