@@ -158,6 +158,7 @@ def create_wsgi_app(name):
     api.add_resource(actions.tokens.Login, '/tokens/login', public=True)
 
     # Attach non-api routes
+    app.register_blueprint(views.health.bp, url_prefix='/health')
     app.register_blueprint(views.testing.bp, url_prefix='/testing')
 
     # Werkzeug middleware to ensure a clean 'g' object per request.
