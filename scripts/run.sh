@@ -26,4 +26,4 @@ echo "[screencloud-router-api] Config complete."
 
 # Start the api service
 echo "[screencloud-router-api] Starting wsgi server..."
-gunicorn --bind=:5000 --workers=20 --chdir=$DIR wsgi:application --log-file=- --access-logfile=-
+gunicorn --bind=:5000 --workers=1 --chdir=$DIR wsgi:application --log-file=- --access-logfile=-
