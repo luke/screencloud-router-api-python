@@ -1,0 +1,18 @@
+[Unit]
+Description=Screencloud Router API NGINX service
+Requires=router-api.service
+After=router-api.service
+
+[Service]
+TimeoutStartSec=0
+KillMode=none
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill router-api-nginx
+ExecStartPre=-/usr/bin/docker rm router-api-nginx
+ExecStart=/usr/bin/docker run --name router-api-nginx -p 8080:80 --link router-api:app screencloud/screencloud-router-api-nginx bash -c 'sed -i "s/APPSERVER/$APP_PORT_5000_TCP_ADDR:$APP_PORT_5000_TCP_PORT/" /etc/nginx/nginx.conf; nginx -g "daemon off;"'
+ExecStop=/usr/bin/docker stop router-api-nginx
+RestartSec=30
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
