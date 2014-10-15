@@ -54,7 +54,7 @@ def main():
     engine = sql.engine
     click.echo(' DANGER '.center(80, '='))
     click.echo(engine.url.__repr__().center(80))
-    click.echo(''.center(79, '-'))
+    click.echo(''.center(80, '-'))
     click.confirm('Are you REALLY sure you want to drop the db?', abort=True)
     click.echo('You asked for it.  Dropping and re-creating all tables...')
     drop_everything(engine)

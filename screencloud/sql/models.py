@@ -3,7 +3,7 @@ from datetime import datetime
 from collections import namedtuple
 
 from sqlalchemy import (
-    Table, Column, DateTime, CHAR, Index, String, and_, ForeignKey
+    Table, Column, DateTime, CHAR, Index, String, Text, and_, ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import backref, relationship, foreign, column_property
@@ -29,8 +29,6 @@ def generate_uuid():
 class IdentifierMixin(object):
     id = Column(UUID, primary_key=True, default=generate_uuid)
 
-class NameMixin(object):
-    name = Column(String)
 
 class TimestampMixin(object):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -151,7 +149,7 @@ class ModelBase(Base):
     __abstract__ = True
 
 
-class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
+class Account(IdentifierMixin, TimestampMixin, ModelBase):
     """
     An account in the system.
 
@@ -169,12 +167,13 @@ class Account(IdentifierMixin, TimestampMixin, NameMixin, ModelBase):
     )
 
 
-class User(IdentifierMixin, TimestampMixin, IsOwnedMixin, NameMixin, ModelBase):
+class User(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
     """
     A user in the system.
     """
     __tablename__ = 'users'
 
+    name = Column(String)
     email = Column(String)
 
 
@@ -212,21 +211,42 @@ class UserIdentity(TimestampMixin, ModelBase):
     )
 
 
-class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, ModelBase):
+class Player(IdentifierMixin, TimestampMixin, ModelBase):
+    """
+    A player represents the primary software that is run on a screen and
+    interacts with screencloud to load apps etc.
+    """
+    __tablename__ = 'players'
+
+    url = Column(String)
+    
+
+class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, 
+              ModelBase):
+    """
+    A network is primarily a grouping mechanism.  Used by screens and the apps
+    that can play on them.
+    """
     __tablename__ = 'networks'
 
-
-class Screen(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, ModelBase):
-    __tablename__ = 'screens'
-
-
-class Channel(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
-    __tablename__ = 'channels'
+    player_id = Column(UUID, ForeignKey(Player.id))
+    player = relationship(Player, backref=backref('networks'))
 
 
-class App(IdentifierMixin, TimestampMixin, IsOwnedMixin, NameMixin, ModelBase):
+class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
+    """
+    An app is software that is run on a screen (via a player).
+    """
     __tablename__ = 'apps'
 
+    name = Column(String)
+    description = Column(Text)
+    url = Column(String)
 
-class AppInstance(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, ModelBase):
+
+class AppInstance(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
+    """
+    An app + config specific to a user.
+    """
     __tablename__ = 'app_instances'
+
