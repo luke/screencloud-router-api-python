@@ -5,7 +5,7 @@ from collections import namedtuple
 from sqlalchemy import (
     Table, Column, DateTime, CHAR, Index, String, Text, and_, ForeignKey,
 )
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.dialects.postgresql import JSON, ARRAY
 from sqlalchemy.orm import (
     backref, relationship, foreign, column_property, remote
 )
@@ -220,6 +220,8 @@ class Player(IdentifierMixin, TimestampMixin, ModelBase):
     """
     __tablename__ = 'players'
 
+    name = Column(String)
+    version = Column(String)
     url = Column(String)
 
 
@@ -251,8 +253,10 @@ class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     __tablename__ = 'apps'
 
     name = Column(String)
+    keywords = Column(ARRAY(String))
     description = Column(Text)
-    url = Column(String)
+    setup_link = Column(String)
+    edit_link = Column(String)
 
 
 class AppInstance(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
@@ -260,3 +264,7 @@ class AppInstance(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     An app + config specific to a user.
     """
     __tablename__ = 'app_instances'
+
+    app_id = Column(UUID, ForeignKey(App.id))
+    app = relationship(App, backref=backref('app_instances'))
+    settings = Column(JSON)
