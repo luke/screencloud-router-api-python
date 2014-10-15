@@ -6,7 +6,9 @@ from sqlalchemy import (
     Table, Column, DateTime, CHAR, Index, String, Text, and_, ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import backref, relationship, foreign, column_property
+from sqlalchemy.orm import (
+    backref, relationship, foreign, column_property, remote
+)
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -53,7 +55,7 @@ class HasNetworkMixin(object):
 
     @declared_attr
     def network(cls):
-        return relationship('Network')
+        return relationship('Network', backref=cls.__tablename__)
 
 
 class IsOwnedMixin(object):
@@ -219,15 +221,24 @@ class Player(IdentifierMixin, TimestampMixin, ModelBase):
     __tablename__ = 'players'
 
     url = Column(String)
-    
 
-class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, HasNetworkMixin, 
-              ModelBase):
+
+class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
     """
     A network is primarily a grouping mechanism.  Used by screens and the apps
     that can play on them.
+
+    Networks are hierarchical (tree structure) via the parent/children
+    attributes.
     """
     __tablename__ = 'networks'
+
+    parent_id = Column(UUID, ForeignKey('networks.id'))
+    parent = relationship(
+        'Network',
+        primaryjoin='Network.parent_id == remote(Network.id)',
+        backref=backref('children', cascade='all, delete-orphan')
+    )
 
     player_id = Column(UUID, ForeignKey(Player.id))
     player = relationship(Player, backref=backref('networks'))
@@ -249,4 +260,3 @@ class AppInstance(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     An app + config specific to a user.
     """
     __tablename__ = 'app_instances'
-
