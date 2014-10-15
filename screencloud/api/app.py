@@ -4,9 +4,9 @@ import schematics.exceptions
 
 from screencloud import config, sql, redis
 from screencloud.common import exceptions
+from screencloud.services import authentication
 from . import g, local_manager
 from . import representations
-from .auth import scopes, authentication, authorization
 from . import actions, resources, views
 
 
@@ -108,8 +108,8 @@ def create_wsgi_app(name):
         Attach useful, request-long, objects to the global g.
         """
         g.request = request
-        g.sql = sql.session_factory()
-        g.redis = redis.client_factory(shared_pool=True)
+        g.sql_session = sql.session_factory()
+        g.redis_session = redis_session.client_factory(shared_pool=True)
 
 
     @app.teardown_request
@@ -117,10 +117,10 @@ def create_wsgi_app(name):
         """
         Ensure any used resources are cleaned up after the request.
         """
-        if g.sql:
+        if g.sql_session:
             if exc:
-                g.sql.rollback()
-            g.sql.close()
+                g.sql_session.rollback()
+            g.sql_session.close()
 
 
     @app.before_request
@@ -139,7 +139,7 @@ def create_wsgi_app(name):
             return
 
         header = g.request.headers.get('Authorization', None)
-        token = authentication.get_token_from_header(header)
+        token = _get_token_from_header(header)
         g.auth = authentication.lookup(token)
 
 
@@ -165,3 +165,24 @@ def create_wsgi_app(name):
     app.wsgi_app = local_manager.make_middleware(app.wsgi_app)
 
     return app.wsgi_app
+
+
+
+def _get_token_from_header(header):
+    """
+    Inspect the given header value and retrieve the token from it.
+
+    Returns:
+        The token string.
+    Raises:
+        AuthenticationError.
+    """
+    if not header:
+        raise exceptions.AuthenticationError('Bad Header')
+    splits = header.split()
+    if len(splits) != 2:
+        raise exceptions.AuthenticationError('Bad Header')
+    auth_type, token = splits
+    if auth_type != 'Bearer':
+        raise exceptions.AuthenticationError('Bad Header')
+    return token

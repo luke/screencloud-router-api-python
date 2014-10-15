@@ -5,8 +5,12 @@ from screencloud.common import utils
 from screencloud.common.exceptions import AuthenticationError
 from screencloud.redis import keys
 from screencloud.sql import models
-from . import scopes
-from .. import g
+
+
+#: Available token scopes
+ANONYMOUS = ''
+ACCOUNT = 'account'
+
 
 #: Authentication model to pass around
 Authentication = namedtuple(
@@ -19,7 +23,7 @@ Authentication = namedtuple(
     ]
 )
 
-def create_anonymous_token():
+def create_anonymous_token(redis_session):
     """
     Generate an auth token with anonymous scope and persist (redis).
 
@@ -29,14 +33,14 @@ def create_anonymous_token():
     token = uuid.uuid4().hex
     key = keys.authentication_token(token)
     data = {
-        'scope': scopes.ANONYMOUS,
+        'scope': ANONYMOUS,
         'last_accessed': utils.timestamp(),
     }
-    g.redis.hmset(key, data)
+    redis_session.hmset(key, data)
     return token
 
 
-def lookup(token, update_timestamp=True):
+def lookup(redis_session, sql, token, update_timestamp=True):
     """
     Lookup the given token string in the auth store (redis).
 
@@ -48,16 +52,16 @@ def lookup(token, update_timestamp=True):
 
     # Lookup the token in redis
     key = keys.authentication_token(token)
-    data = g.redis.hgetall(key)
+    data = redis_session.hgetall(key)
 
     if not data:
         raise AuthenticationError
 
     if update_timestamp:
-        g.redis.hset(key, 'last_accessed', utils.timestamp())
+        redis_session.hset(key, 'last_accessed', utils.timestamp())
 
     # Return valid anonymous auth
-    if data['scope'] == scopes.ANONYMOUS:
+    if data['scope'] == ANONYMOUS:
         return Authentication(
             is_anonymous=True,
             scope=data['scope'],
@@ -68,13 +72,13 @@ def lookup(token, update_timestamp=True):
     # TODO: just assuming account scope for now...
 
     # Lookup the account in sql db
-    account = g.sql.query(models.Account).get(data['account'])
+    account = sql.query(models.Account).get(data['account'])
 
     # Ensure the token is associated with a live account
     # TODO: make sure deleted_at is in the past...
     if not account or account.deleted_at:
         # That token's no good anymore.  Get rid of it.
-        g.redis.delete(key)
+        redis_session.delete(key)
         raise AuthenticationError
 
     # Return valid auth
@@ -84,23 +88,3 @@ def lookup(token, update_timestamp=True):
         token=token,
         account=account,
     )
-
-
-def get_token_from_header(header):
-    """
-    Inspect the given header value and retrieve the token from it.
-
-    Returns:
-        The token string.
-    Raises:
-        AuthenticationError.
-    """
-    if not header:
-        raise AuthenticationError('Bad Header')
-    splits = header.split()
-    if len(splits) != 2:
-        raise AuthenticationError('Bad Header')
-    auth_type, token = splits
-    if auth_type != 'Bearer':
-        raise AuthenticationError('Bad Header')
-    return token

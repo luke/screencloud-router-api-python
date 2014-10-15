@@ -16,8 +16,8 @@ class List(Resource):
         schema = schemas.Account(g.request.get_json())
         schema.validate()
         model = models.Account(**schema.to_native(role='post'))
-        g.sql.add(model)
-        g.sql.commit()
+        g.sql_session.add(model)
+        g.sql_session.commit()
 
         # Make 
 
