@@ -227,6 +227,17 @@ class Player(IdentifierMixin, TimestampMixin, ModelBase):
     url = Column(String)
 
 
+class Remote(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
+    """
+    A remote is an app that a user uses to interact with screencloud.
+
+    E.g. The ScreenBox iOS app.
+    """
+    __tablename__ = 'remotes'
+
+    name = Column(String)
+
+
 class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
     """
     A network is primarily a grouping mechanism.  Used by screens and the apps
@@ -236,6 +247,8 @@ class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
     attributes.
     """
     __tablename__ = 'networks'
+
+    name = Column(String)
 
     parent_id = Column(UUID, ForeignKey('networks.id'))
     parent = relationship(
