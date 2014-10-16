@@ -6,9 +6,9 @@ from .. import g
 
 class Anonymous(Resource):
     def post(self):
-        token = authentication.create_anonymous_token(g.redis_session)
+        auth = authentication.create_anonymous_auth(g.redis_session)
         return {
-            'token': token
+            'token': auth.token
         }
 
 class Login(Resource):

@@ -160,6 +160,8 @@ class Account(IdentifierMixin, TimestampMixin, ModelBase):
     """
     __tablename__ = 'accounts'
 
+    name = Column(String)
+
     ownerships = relationship(
         'OwnershipAssociation',
         primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
@@ -206,7 +208,7 @@ class UserIdentity(TimestampMixin, ModelBase):
     type = Column(String, primary_key=True)
     identifier = Column(String, primary_key=True)
     data = Column(JSON)
-    user_id = Column(UUID, ForeignKey(User.id))
+    user_id = Column(UUID, ForeignKey(User.id), nullable=False)
     user = relationship(
         User,
         backref=backref('identities', cascade='all, delete-orphan')

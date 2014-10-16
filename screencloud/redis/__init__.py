@@ -13,9 +13,9 @@ conn_details = _match.groupdict()
 
 # Note, redis-py clients are threadsafe (no shared state), so we can use a
 # shared connection pool.
-pool = redis.ConnectionPool(conn_details)
+pool = redis.ConnectionPool(**conn_details)
 
 def client_factory(shared_pool=False):
     if shared_pool:
         return redis.StrictRedis(connection_pool=pool)
-    return redis.StrictRedis(conn_details)
+    return redis.StrictRedis(**conn_details)

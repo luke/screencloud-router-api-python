@@ -109,7 +109,7 @@ def create_wsgi_app(name):
         """
         g.request = request
         g.sql_session = sql.session_factory()
-        g.redis_session = redis_session.client_factory(shared_pool=True)
+        g.redis_session = redis.client_factory(shared_pool=True)
 
 
     @app.teardown_request
