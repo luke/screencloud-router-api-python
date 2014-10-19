@@ -3,8 +3,11 @@ from flask.ext.restful import Api as BaseApi
 import schematics.exceptions
 
 from screencloud import config, sql, redis
+from screencloud.services import ServiceHolder
+from screencloud.services.authentication import Authentication
+from screencloud.services.authorization import Authorization
 from screencloud.common import exceptions
-from screencloud.services import authentication
+
 from . import g, local_manager
 from . import representations
 from . import actions, resources, views
@@ -108,8 +111,13 @@ def create_wsgi_app(name):
         Attach useful, request-long, objects to the global g.
         """
         g.request = request
-        g.sql_session = sql.session_factory()
+
         g.redis_session = redis.client_factory(shared_pool=True)
+        g.sql_session = sql.session_factory()
+
+        g.services = ServiceHolder()
+        g.services.authorization = Authorization(g.redis_session, g.sql_session)
+        g.services.authentication = Authentication(g.redis_session, g.sql_session)
 
 
     @app.teardown_request
@@ -140,8 +148,7 @@ def create_wsgi_app(name):
 
         header = g.request.headers.get('Authorization', None)
         token = _get_token_from_header(header)
-        g.auth = authentication.lookup(token)
-
+        g.auth = g.services.authentication.lookup(token)
 
     @app.before_request
     def br_authorize():
