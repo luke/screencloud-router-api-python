@@ -11,13 +11,12 @@ class Base(schematics.models.Model):
 
 class Auth(Base):
     token = StringType(default=utils.url_safe_token)
-    scopes = ListType(StringType(), default=list)
-    data = DictType(StringType(), default=dict)
+    scopes = DictType(StringType(), default=dict)
     last_accessed = FloatType(default=utils.timestamp)
 
     class Options:
         roles = {
-            'redis': whitelist('scopes', 'data', 'last_accessed')
+            'redis': whitelist('scopes', 'last_accessed')
         }
 
     @property

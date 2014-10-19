@@ -5,8 +5,6 @@ set -eo pipefail
 # The directory of this script
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo "[screencloud-router-api] Booting up..."
-
 # Construct confd commandline (using env (default) or etcd as the backend).
 CONFD_BACKEND=${CONFD_BACKEND:-"env"}
 if [[ $CONFD_BACKEND == "etcd" ]]; then
@@ -23,7 +21,3 @@ until $CONFD_CMD -onetime; do
   sleep 2
 done
 echo "[screencloud-router-api] Config complete."
-
-# Start the api service
-echo "[screencloud-router-api] Starting wsgi server..."
-gunicorn --bind=:5000 --workers=1 --chdir=$DIR wsgi:application --log-file=- --access-logfile=-

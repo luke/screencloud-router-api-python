@@ -58,7 +58,8 @@ class Api(BaseApi):
         """
         Handle standard expections raised in the app and respond appropriately.
         """
-        def make_response(data, code, headers):
+        def make_response(data, code, headers=None):
+            headers or {}
             resp = {'status': code}
             resp.update(data)
             return representations.to_json(resp, code, headers)
@@ -71,7 +72,7 @@ class Api(BaseApi):
             )
 
         if isinstance(err, exceptions.AuthorizationError):
-            return make_response({'message': 'Forbidden',}, 403, {})
+            return make_response({'message': 'Forbidden',}, 403)
 
         if isinstance(err, schematics.exceptions.ValidationError):
             return make_response(

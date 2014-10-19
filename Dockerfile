@@ -31,4 +31,4 @@ RUN pip install -r requirements.txt
 COPY . /srv/app
 
 EXPOSE 5000
-CMD ["./scripts/run.sh"]
+CMD ["./scripts/run"]

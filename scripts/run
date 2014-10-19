@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# The directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "[screencloud-router-api] Booting up..."
+
+# Generate the config
+${DIR}/create-config
+
+# Start the api service
+echo "[screencloud-router-api] Starting wsgi server..."
+gunicorn --bind=:5000 --workers=1 --chdir=$DIR wsgi:application --log-file=- --access-logfile=-

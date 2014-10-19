@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# The directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "[screencloud-router-api] Booting up..."
+
+# Generate the config
+${DIR}/create-config
+
+# Start IPython
+echo "[screencloud-router-api] Starting IPython."
+cd ${DIR}/../
+ipython

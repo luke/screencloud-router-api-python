@@ -4,6 +4,8 @@ from screencloud.common import exceptions
 from screencloud.sql import models
 from .. import g, schemas
 
+
+
 class List(Resource):
     def get(self):
         pass
