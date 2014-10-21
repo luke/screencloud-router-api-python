@@ -16,32 +16,22 @@ class Authentication(Service):
             An Authentication model object.
         """
         auth = rmodels.Auth()
-        auth._rpersist(redis_session)
+        auth._rpersist(self.connections.redis)
         return auth
 
 
-    def create_network_auth(self, account, network):
+    def create_network_auth(self, network):
         """
-        Generate an auth token for the given account with network scope set to the
-        given network.
-
-        The given network must be owned by the given account.
+        todo
 
         Returns:
             An Authentication model object.
-        Raises:
-            ServiceUsageError.
         """
-        if not network in account.networks:
-            raise ServiceUsageError('Trying to create auth for a network unrelated'
-                                    ' to the given account.')
-
         auth = rmodels.Auth()
-        auth.scopes = [scopes.NETWORK]
-        auth.data = {
-            'account': account.id,
+        auth.context = {
             'network': network.id,
         }
+        auth.scopes = [scopes.NETWORK__READ, USERS__LOGIN, USERS__CREATE]
         auth._rpersist(self.connections.redis)
         return auth
 
@@ -67,28 +57,28 @@ class Authentication(Service):
             self.connections.redis.hset(auth._rkey, 'last_accessed', ts)
             auth.last_accessed = ts
 
-        # Scope dependant behaviour
-        # -------------------------
 
-        # Anonymous
-        if not auth.scopes:
-            return auth
-
-        # # All non-anonymous scopes are expected to have an account
-        # account = self.connections.sql.query(models.Account)\
-        #     .get(auth.data['account_id'])
-
-        # # Ensure the token is associated with a live account
-        # if not account or (
-        #     account.deleted_at and account.deleted_at < datetime.utcnow()
-        # ):
-        #     # That token's no good anymore.  Get rid of it.
-        #     self.connections.redis.delete(auth._rkey)
-        #     raise AuthenticationError
-
-        # Do we want to do more checking here?  E.g. making sure other objects
-        # related to the scopes exist in the db?  Dunno... feels like it doesn't
-        # belong here.
+        # If the token has a context, ensure the related resources exist.
+        for resource_type, resource_id in auth.context.items():
+            model = _resource_type_model_map['resource_type']
+            resource = self.connections.sql.query(model).get(resource_id)
+            
+            # Ensure the resource is alive.
+            if not resource or (
+                    resource.deleted_at 
+                    and resource.deleted_at < datetime.utcnow()
+            ):
+                # That token's no good anymore.  Get rid of it.
+                self.connections.redis.delete(auth._rkey)
+                raise AuthenticationError
 
         # Return valid auth
         return auth
+
+
+#: Helper to lookup resources specified in an auth's context.
+_resource_type_model_map = {
+    'user': smodels.User,
+    'network': smodels.Network,
+    'account': smodels.Account,
+}

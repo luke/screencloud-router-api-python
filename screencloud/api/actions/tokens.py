@@ -1,12 +1,11 @@
 from flask.ext.restful import Resource
 
 from screencloud.common import utils, exceptions
-from screencloud.services import authentication
 from .. import g
 
 class Anonymous(Resource):
     def post(self):
-        auth = authentication.create_anonymous_auth(g.redis_session)
+        auth = g.services.authentication.create_anonymous_auth()
         return {
             'token': auth.token
         }
