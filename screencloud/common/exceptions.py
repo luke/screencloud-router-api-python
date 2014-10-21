@@ -1,3 +1,5 @@
+import schematics.exceptions
+
 class Error(Exception):
     """
     Base class for all errors in the app.
@@ -10,7 +12,7 @@ class AuthenticationError(Error):
 class AuthorizationError(Error):
     pass
 
-class InputError(Error):
+class InputError(Error, schematics.exceptions.BaseError):
     pass
 
 class ServiceUsageError(Error):

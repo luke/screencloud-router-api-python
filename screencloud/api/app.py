@@ -6,6 +6,7 @@ from screencloud import config, sql, redis
 from screencloud.services import ServiceHolder
 from screencloud.services.authentication import Authentication
 from screencloud.services.authorization import Authorization
+from screencloud.services.user import User
 from screencloud.common import exceptions
 
 from . import g, local_manager
@@ -74,7 +75,7 @@ class Api(BaseApi):
         if isinstance(err, exceptions.AuthorizationError):
             return make_response({'message': 'Forbidden',}, 403)
 
-        if isinstance(err, schematics.exceptions.ValidationError):
+        if isinstance(err, exceptions.InputError):
             return make_response(
                 {
                     'message': 'Bad Request',
@@ -119,6 +120,7 @@ def create_wsgi_app(name):
         g.services = ServiceHolder()
         g.services.authorization = Authorization(g.redis_session, g.sql_session)
         g.services.authentication = Authentication(g.redis_session, g.sql_session)
+        g.services.user = User(g.redis_session, g.sql_session)
 
 
     @app.teardown_request
@@ -158,12 +160,15 @@ def create_wsgi_app(name):
 
 
     # Attach the api REST resource routes
-    api.add_resource(resources.accounts.List, '/accounts')
-    api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
+    # api.add_resource(resources.accounts.List, '/accounts')
+    # api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
+    api.add_resource(resources.users.List, '/users')
+    api.add_resource(resources.users.Item, '/users/<string:id>')
+
 
     # Attach the api action routes (not necessarily RESTy)
+    api.add_resource(actions.users.Login, '/users/login')
     api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
-    api.add_resource(actions.tokens.Login, '/tokens/login', public=True)
 
     # Attach non-api routes
     app.register_blueprint(views.health.bp, url_prefix='/health')

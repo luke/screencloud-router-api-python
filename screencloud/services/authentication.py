@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from screencloud.common import utils, scopes
-from screencloud.common.exceptions import AuthenticationError, ServiceUsageError
+from screencloud.common.exceptions import AuthenticationError
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
@@ -97,7 +97,7 @@ class Authentication(Service):
 
         # If the token has a context, ensure the related resources exist.
         for resource_type, resource_id in auth.context.items():
-            model = _resource_type_model_map['resource_type']
+            model = _resource_type_model_map[resource_type]
             resource = self.connections.sql.query(model).get(resource_id)
 
             # Ensure the resource is alive.

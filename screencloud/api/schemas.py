@@ -1,5 +1,6 @@
 from schematics.models import Model as BaseModel
-from schematics.types import StringType, DateTimeType
+from schematics.types import StringType, DateTimeType, EmailType
+from schematics.types.compound import ModelType, DictType
 from schematics.transforms import whitelist, blacklist
 
 
@@ -24,18 +25,6 @@ class HalModel(Model):
 
 
 class Account(HalModel):
-    id = StringType()
-    name = StringType(required=True)
-    created_at = DateTimeType()
-
-    class Options:
-        roles = {
-            'post': whitelist('name'),
-            'patch': whitelist('name'),
-        }
-
-
-class User(HalModel):
     id = StringType()
     name = StringType(required=True)
     created_at = DateTimeType()

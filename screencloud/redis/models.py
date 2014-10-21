@@ -1,3 +1,5 @@
+import json
+
 import schematics.models
 from schematics.types import StringType, FloatType
 from schematics.types.compound import ListType, DictType
@@ -46,13 +48,16 @@ class Auth(Base):
         return keys.authentication_token(self.token)
 
     def _rpersist(self, redis_session):
-        return redis_session.hmset(self._rkey, self.to_primitive(role='redis'))
+        data = self.to_primitive(role='redis')
+        data_json = { k: json.dumps(v) for k, v in data.items() }
+        return redis_session.hmset(self._rkey, data_json)
 
     @classmethod
     def _rlookup(cls, redis_session, token):
-        k = keys.authentication_token(token)
-        d = redis_session.hgetall(k)
-        if not d:
-            return d
-        d.update({'token': token})
-        return cls(d)
+        key = keys.authentication_token(token)
+        data_json = redis_session.hgetall(key)
+        if not data_json:
+            return None
+        data = { k: json.loads(v) for k, v in data_json.items() }
+        data.update({'token': token})
+        return cls(data)
