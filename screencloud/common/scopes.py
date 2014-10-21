@@ -17,6 +17,12 @@ NETWORK__READ = 'network:read'
 #   user
 NETWORK__USER__FULL = 'network.user:full'
 
-
+# Authenticate / create a user via identities and retrieve new access tokens for
+# them, with scopes depending on current context and scopes.
 USERS__LOGIN = 'users:login'
 USERS__CREATE = 'users:create'
+
+# Wrie access to a users data.
+# Context required:
+#   user
+USER__UPDATE = 'user:update'

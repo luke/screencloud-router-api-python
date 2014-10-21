@@ -8,21 +8,26 @@ from screencloud.sql import models as smodels
 from . import Service
 
 class Authentication(Service):
-    def create_anonymous_auth(self):
+    def create_anonymous_auth(self, persist=True):
         """
-        Generate an auth token with anonymous scope and persist.
+        Generate an auth token with anonymous scope.
 
         Returns:
             An Authentication model object.
         """
         auth = rmodels.Auth()
-        auth._rpersist(self.connections.redis)
+        if persist:
+            auth._rpersist(self.connections.redis)
         return auth
 
 
-    def create_network_auth(self, network):
+    def create_network_remote_auth(self, network, persist=True):
         """
-        todo
+        Generate auth with scope to do the things a remote app (e.g. the
+        ScreenBox iOS app) controlling a (top-level) network would probably want
+        to do.
+
+        E.g. Sign-up new users and generate relevant auth tokens for them.
 
         Returns:
             An Authentication model object.
@@ -31,12 +36,44 @@ class Authentication(Service):
         auth.context = {
             'network': network.id,
         }
-        auth.scopes = [scopes.NETWORK__READ, USERS__LOGIN, USERS__CREATE]
-        auth._rpersist(self.connections.redis)
+        auth.scopes = [
+            scopes.NETWORK__READ,
+            scopes.USERS__LOGIN,
+            scopes.USERS__CREATE
+        ]
+        if persist:
+            auth._rpersist(self.connections.redis)
         return auth
 
 
-    def lookup(self, token, update_timestamp=True):
+    def create_network_remote_user_auth(self, network, user, persist=True):
+        """
+        Generate auth with scope to do the things a remote app (e.g. the
+        ScreenBox iOS app) controlling a (top-level) network would probably want
+        to do on behalf of a user.
+
+        E.g. Create accounts (through sub-networks) in that network and generate
+        app-instances.
+
+        Returns:
+            An Authentication model object.
+        """
+        auth = rmodels.Auth()
+        auth.context = {
+            'network': network.id,
+            'user': user.id
+        }
+        auth.scopes = [
+            scopes.NETWORK__READ,
+            scopes.USER__UPDATE,
+            scopes.NETWORK__USER__FULL
+        ]
+        if persist:
+            auth._rpersist(self.connections.redis)
+        return auth
+
+
+    def lookup(self, token, update_timestamp=True, remove_if_invalid=True):
         """
         Lookup the given token string in the auth store (redis).
 
@@ -62,14 +99,15 @@ class Authentication(Service):
         for resource_type, resource_id in auth.context.items():
             model = _resource_type_model_map['resource_type']
             resource = self.connections.sql.query(model).get(resource_id)
-            
+
             # Ensure the resource is alive.
             if not resource or (
-                    resource.deleted_at 
+                    resource.deleted_at
                     and resource.deleted_at < datetime.utcnow()
             ):
-                # That token's no good anymore.  Get rid of it.
-                self.connections.redis.delete(auth._rkey)
+                # That token's no good anymore.
+                if remove_if_invalid:
+                    self.connections.redis.delete(auth._rkey)
                 raise AuthenticationError
 
         # Return valid auth

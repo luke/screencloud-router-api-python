@@ -1,5 +1,11 @@
 import sys, os
-sys.path.append(os.path.realpath(os.pardir))
+if os.path.basename(os.path.realpath(os.curdir)) == 'scripts':
+    sys.path.append(os.path.realpath(os.pardir))
+elif os.path.exists(os.path.join(os.curdir, 'screencloud')):
+    sys.path.append(os.path.realpath(os.curdir))
+else:
+    print 'Please run this from the scripts folder or the project root.'
+    exit(1001)
 
 import click
 from sqlalchemy.engine import reflection
