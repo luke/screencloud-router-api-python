@@ -3,11 +3,8 @@ from flask.ext.restful import Api as BaseApi
 import schematics.exceptions
 
 from screencloud import config, sql, redis
-from screencloud.services import ServiceHolder
-from screencloud.services.authentication import Authentication
-from screencloud.services.authorization import Authorization
-from screencloud.services.user import User
-from screencloud.common import exceptions
+from screencloud.services import authentication, authorization
+from screencloud.common import exceptions, utils
 
 from . import g, local_manager
 from . import representations
@@ -114,13 +111,10 @@ def create_wsgi_app(name):
         """
         g.request = request
 
-        g.redis_session = redis.client_factory(shared_pool=True)
-        g.sql_session = sql.session_factory()
-
-        g.services = ServiceHolder()
-        g.services.authorization = Authorization(g.redis_session, g.sql_session)
-        g.services.authentication = Authentication(g.redis_session, g.sql_session)
-        g.services.user = User(g.redis_session, g.sql_session)
+        g.connections = utils.Connections(
+            redis=redis.client_factory(shared_pool=True),
+            sql=sql.session_factory()
+        )
 
 
     @app.teardown_request
@@ -128,10 +122,10 @@ def create_wsgi_app(name):
         """
         Ensure any used resources are cleaned up after the request.
         """
-        if g.sql_session:
+        if g.connections and g.connections.sql:
             if exc:
-                g.sql_session.rollback()
-            g.sql_session.close()
+                g.connections.sql.rollback()
+            g.connections.sql.close()
 
 
     @app.before_request
@@ -151,7 +145,7 @@ def create_wsgi_app(name):
 
         header = g.request.headers.get('Authorization', None)
         token = _get_token_from_header(header)
-        g.auth = g.services.authentication.lookup(token)
+        g.auth = authentication.lookup(g.connections, token)
 
     @app.before_request
     def br_authorize():

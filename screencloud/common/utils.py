@@ -27,3 +27,14 @@ def url_safe_token(bytelength=32):
     Create a new random url-safe token.
     """
     return urlsafe_b64encode(urandom(bytelength))
+
+
+class Connections(object):
+    """
+    A simple object used to pass connection data around the app.
+
+    Expects redis to be a redis client and sql to be a sqlalchemy session.
+    """
+    def __init__(self, redis, sql):
+        self.redis = redis
+        self.sql = sql

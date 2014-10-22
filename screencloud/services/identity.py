@@ -1,15 +1,27 @@
 from datetime import datetime
 
-from screencloud.common import utils, scopes
-from screencloud.common.exceptions import AuthenticationError
+from screencloud.common import utils, scopes, exceptions
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
-from . import Service
+def lookup(connections, identity_type, identifier):
+    """
+    Try to find the identity in the system.
 
-class Identity(Service):
-    def lookup_user(self, identity_type, identifier, data):
-        return 'hi'
+    Returns:
+        None or `screencloud.sql.models.Identity`
+    """
+    return connections.sql.query(smodels.UserIdentity)\
+        .filter_by(type=identity_type, identifier=identifier)\
+        .first()
 
-    def lookup_identity(self, identity_type, identifier, data):
-        return 'hi'
+def create(connections, identity_type, identifier, data, persist=True):
+    """
+    Try to find the identity in the system.
+
+    Returns:
+        None or `screencloud.sql.models.Identity`
+    Raises:
+        InputError
+    """
+    return 'hi'

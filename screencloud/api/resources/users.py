@@ -1,5 +1,6 @@
 from flask.ext.restful import Resource
 
+from screencloud.services import authorization, user
 from screencloud.common import exceptions
 from .. import g, schemas, utils
 
@@ -24,10 +25,14 @@ class List(Resource):
         raise NotImplementedError()
 
     def post(self):
-        g.services.authorization.assert_can_create_user(g.auth)
+        authorization.assert_can_create_user(g.connections, g.auth)
         input_data = utils.validate_input_structure(g.request, PostInput)
-        user = g.services.user.create_with_identity(**input_data.to_primitive())
-        return user
+        u = user.create_with_identity(
+            g.connections,
+            user_data=input_data.user.to_primitive(),
+            identity_data=input_data.identity.to_primitive()
+        )
+        return u
 
 
 class Item(Resource):

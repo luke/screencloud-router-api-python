@@ -1,23 +1,27 @@
 from datetime import datetime
 
-from screencloud.common import utils, scopes
-from screencloud.common.exceptions import AuthenticationError
+from screencloud.common import utils, scopes, exceptions
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
-from . import Service
+from . import identity as identity_service
 
-class User(Service):
-    def create_with_identity(self, user, identity):
-        """
-        Create a new user and associated identity using the provided data dicts.
+def create_with_identity(connections, user_data, identity_data):
+    """
+    Create a new user and associated identity using the provided data dicts.
 
-        Checks to ensure identity data is unique in the system.
+    Returns:
+        The new user as a `screencloud.sql.models.User`
+    Raises:
+        InputError
+    """
 
-        Returns:
-            The new user as a `screencloud.sql.models.User`
+    identity = identity_service.create(
+        connections,
+        identity_data['type'],
+        identity_data['identifier'],
+        identity_data['data'],
+        persist=False
+    )
 
-        Raises:
-            InputError
-        """
-        return 'hi'
+    return identity
