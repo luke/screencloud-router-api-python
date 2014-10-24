@@ -2,7 +2,7 @@ import time
 import logging
 from base64 import urlsafe_b64encode
 from os import urandom
-from passlib import bcrypt_sha256
+from passlib.hash import bcrypt_sha256
 
 def get_logger(name, level=logging.DEBUG, attach_null_handler=True):
     """
