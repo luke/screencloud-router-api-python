@@ -2,6 +2,7 @@ import time
 import logging
 from base64 import urlsafe_b64encode
 from os import urandom
+from passlib import bcrypt_sha256
 
 def get_logger(name, level=logging.DEBUG, attach_null_handler=True):
     """
@@ -16,11 +17,13 @@ def get_logger(name, level=logging.DEBUG, attach_null_handler=True):
         logger.addHandler(logging.NullHandler())
     return logger
 
+
 def timestamp():
     """
     Return current unix time as a float.
     """
     return time.time()
+
 
 def url_safe_token(bytelength=32):
     """
@@ -38,3 +41,26 @@ class Connections(object):
     def __init__(self, redis, sql):
         self.redis = redis
         self.sql = sql
+
+
+def encrypt_secret(secret):
+    """
+    Generate a secure (one-way) hash from the given secret.  Suitable for storing
+    passwords.
+
+    Returns:
+        The hashed secret.
+    """
+    bcrypt_sha256.encrypt(password, rounds=8)
+
+
+def verify_secret(secret, hash):
+    """
+    Check to see if the provided secret matches the hashed value.
+
+    Companion to `utils.encrypt_secret`
+
+    Returns:
+        Bool indicating whether or not the secret matches the hash.
+    """
+    bcrypt_sha256.verify(secret, hash)

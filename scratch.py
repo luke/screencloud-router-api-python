@@ -6,11 +6,13 @@ the python cli.
 from screencloud import sql, redis
 from screencloud.sql import models as smodels
 from screencloud.redis import models as rmodels
-from screencloud.services.authentication import Authentication
+from screencloud.services import authentication
+from screencloud.common import utils
 
 sql_session = sql.session_factory()
 redis_session = redis.client_factory()
-auth_service = Authentication(redis_session, sql_session)
+
+connections = utils.Connections(redis_session, sql_session)
 
 def create_screenbox_models():
     account = smodels.Account()
@@ -44,4 +46,4 @@ def create_screenbox_auth():
         .filter_by(name='ScreenBox')\
         .first()
 
-    return auth_service.create_network_remote_auth(network)
+    return authentication.create_network_remote_auth(connections, network)

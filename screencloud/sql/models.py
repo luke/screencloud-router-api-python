@@ -187,23 +187,18 @@ class UserIdentity(TimestampMixin, ModelBase):
 
     E.g:
         UserIdentity(
-            type=UserIdentity.TYPES.BASIC,
+            type=basic,
             identifier='a-username',
-            data={"password": "some-secret"}
+            data={"password": "some-hashed-secret"}
         )
 
         UserIdentity(
-            type=UserIdentity.TYPES.GOOGLE,
+            type=google,
             identifier='some-google-identifier',
             data={...}
         )
     """
     __tablename__ = 'user_identities'
-
-    TYPES = namedtuple(
-        'UserIdentityTypes',
-        ['BASIC', 'GOOGLE']
-    )('basic', 'google')
 
     type = Column(String, primary_key=True)
     identifier = Column(String, primary_key=True)

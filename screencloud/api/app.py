@@ -77,8 +77,17 @@ class Api(BaseApi):
                 {
                     'message': 'Bad Request',
                     'errors': err.message
-                }, 400, {}
+                }, 400
             )
+
+        if isinstance(err, exceptions.UnprocessableError):
+            return make_response(
+                {
+                    'message': 'Unprocessable Entity',
+                    'errors': err.message
+                }, 422
+            )
+
 
         # Fall through to parent handler
         return super(Api, self).handle_error(err)
@@ -122,7 +131,7 @@ def create_wsgi_app(name):
         """
         Ensure any used resources are cleaned up after the request.
         """
-        if g.connections and g.connections.sql:
+        if hasattr(g, 'connections') and hasattr(g.connections, 'sql'):
             if exc:
                 g.connections.sql.rollback()
             g.connections.sql.close()
@@ -154,15 +163,13 @@ def create_wsgi_app(name):
 
 
     # Attach the api REST resource routes
-    # api.add_resource(resources.accounts.List, '/accounts')
-    # api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
     api.add_resource(resources.users.List, '/users')
     api.add_resource(resources.users.Item, '/users/<string:id>')
-
 
     # Attach the api action routes (not necessarily RESTy)
     api.add_resource(actions.users.Login, '/users/login')
     api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
+    api.add_resource(actions.tokens.Verify, '/tokens/verify')
 
     # Attach non-api routes
     app.register_blueprint(views.health.bp, url_prefix='/health')

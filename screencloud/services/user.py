@@ -13,7 +13,7 @@ def create_with_identity(connections, user_data, identity_data):
     Returns:
         The new user as a `screencloud.sql.models.User`
     Raises:
-        InputError
+        UnprocessableError
     """
 
     identity = identity_service.create(
