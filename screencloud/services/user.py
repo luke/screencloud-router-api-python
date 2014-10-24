@@ -33,3 +33,25 @@ def create_with_identity(connections, user_data, identity_data):
     connections.sql.commit()
 
     return user
+
+
+def lookup_by_valid_identity(connections, identity_data):
+    """
+    Lookup a user from the provided identity_data.  Also validates the identity.
+
+    Returns:
+        The user as a `screencloud.sql.models.User`
+    Raises:
+        UnprocessableError
+    """
+
+    identity = identity_service.lookup_and_verify(
+        connections,
+        identity_data['type'],
+        identity_data['identifier'],
+        identity_data['data']
+    )
+
+    user = identity.user
+
+    return user

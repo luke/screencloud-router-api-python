@@ -67,6 +67,33 @@ def create(connections, identity_type, identifier, data, persist=True):
     return identity
 
 
+def lookup_and_verify(connections, identity_type, identifier, data):
+    """
+    Try to find the identity in the system and verify that the provided data
+    matches the saved data.  (e.g. check the password...)
+
+    Returns:
+        `screencloud.sql.models.Identity`
+    Raises:
+        UnprocessableError
+    """
+    if identity_type not in [BASIC_TYPE, BASIC_NAMESPACED_TYPE]:
+        raise NotImplementedError
+
+    if identity_type == BASIC_NAMESPACED_TYPE:
+        identifier = _identifier_to_namespaced(identifier, data['namespace'])
+
+    identity = lookup(identity_type, identifier)
+
+    if not identity:
+        raise UnprocessableError('Could not verify identity.')
+
+    if not utils.verify_secret(data['password'], identity.password):
+        raise UnprocessableError('Could not verify identity.')
+
+    return identity
+
+
 def _identifier_to_namespaced(identifier, namespace):
     return '%s:%s' % (namespace, identifier)
 

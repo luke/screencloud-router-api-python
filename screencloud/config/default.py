@@ -4,10 +4,3 @@
 DEBUG = False
 SQL_DB_URI = '' # 'postgresql://screencloud:screencloud@localhost/screencloud'
 REDIS_DB_URI = '' # 'redis://localhost:6379/0'
-OAUTH_CLIENTS = {}
-# OAUTH_CLIENTS = {
-#     'google': {
-#         'client_id':'blah.apps.googleusercontent.com',
-#         'client_secret':'secret',
-#     }
-# }

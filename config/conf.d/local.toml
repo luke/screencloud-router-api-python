@@ -5,6 +5,4 @@ keys = [
   "/debug",
   "/sql_db_uri",
   "/redis_db_uri",
-  "/oauth/clients/google/id",
-  "/oauth/clients/google/secret",
 ]

@@ -5,3 +5,8 @@ def assert_can_create_user(connections, auth):
         return
     raise exceptions.AuthorizationError
 
+
+def assert_can_login_user(connections, auth):
+    if scopes.USERS__LOGIN in auth.scopes:
+        return
+    raise exceptions.AuthorizationError

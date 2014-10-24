@@ -2,27 +2,12 @@ from flask.ext.restful import Resource
 
 from screencloud.services import authorization, authentication, user
 from screencloud.common import exceptions
-from ..actions.tokens import AuthResponse
-from .. import g, schemas, utils
+from .. import g, schemas
 
-
-class IdentityInput(schemas.Model):
-    identifier = schemas.StringType(required=True)
-    type = schemas.StringType(required=True)
-    data = schemas.DictType(schemas.StringType(), required=True)
-
-class UserInput(schemas.Model):
-    name = schemas.StringType(required=True)
-    email = schemas.EmailType(required=True)
 
 class PostInput(schemas.Model):
-    identity = schemas.ModelType(IdentityInput, required=True)
-    user = schemas.ModelType(UserInput, required=True)
-
-
-class UserResponse(schemas.Model):
-    name = schemas.StringType()
-    email = schemas.EmailType()
+    identity = schemas.ModelType(schemas.IdentityInput, required=True)
+    user = schemas.ModelType(schemas.UserInput, required=True)
 
 
 class List(Resource):
@@ -31,11 +16,11 @@ class List(Resource):
 
     def post(self):
         authorization.assert_can_create_user(g.connections, g.auth)
-        input_data = utils.validate_input_structure(g.request, PostInput)
+        input_data = schemas.validate_input_structure(g.request, PostInput)
         u = user.create_with_identity(
             g.connections,
-            user_data=input_data.user.to_primitive(),
-            identity_data=input_data.identity.to_primitive()
+            user_data=input_data.user.to_native(),
+            identity_data=input_data.identity.to_native()
         )
         a = authentication.create_network_remote_user_auth(
             g.connections,
@@ -44,8 +29,8 @@ class List(Resource):
         )
 
         return {
-            'user': UserResponse(u._to_dict()),
-            'auth': AuthResponse(a.to_primitive())
+            'user': schemas.UserResponse(u._to_dict()),
+            'auth': schemas.AuthResponse(a.to_primitive())
         }
 
 

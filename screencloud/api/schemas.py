@@ -2,6 +2,9 @@ from schematics.models import Model as BaseModel
 from schematics.types import StringType, DateTimeType, EmailType
 from schematics.types.compound import ModelType, DictType, ListType
 from schematics.transforms import whitelist, blacklist
+import schematics.exceptions
+
+from screencloud.common import exceptions
 
 
 class Model(BaseModel):
@@ -22,3 +25,47 @@ class HalModel(Model):
     See ``screencloud.api.representations``
     """
     pass
+
+
+
+class IdentityInput(Model):
+    identifier = StringType(required=True)
+    type = StringType(required=True)
+    data = DictType(StringType(), required=True)
+
+
+class UserInput(Model):
+    name = StringType(required=True)
+    email = EmailType(required=True)
+
+
+class AuthResponse(HalModel):
+    token = StringType()
+    scopes = ListType(StringType())
+
+
+class UserResponse(HalModel):
+    id = StringType()
+    name = StringType()
+    email = EmailType()
+
+
+
+def validate_input_structure(request, scheme):
+    """
+    Helper to validate input data.
+
+    `scheme` should be a schematics model (inherited from
+    `screencloud.api.schemas.Model`).
+
+    Returns:
+        The validated input data as an instance of 'scheme'.
+    Raises:
+        InputError.
+    """
+    try:
+        data = scheme(request.get_json())
+        data.validate()
+    except schematics.exceptions.BaseError as exc:
+        raise exceptions.InputError(exc.message)
+    return data

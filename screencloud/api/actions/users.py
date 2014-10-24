@@ -1,38 +1,22 @@
 from flask.ext.restful import Resource
 
 from screencloud.common import utils, exceptions
-from .. import g, schemas, utils
+from screencloud.services import authentication, authorization, user
+from .. import g, schemas
 
 class LoginInput(schemas.Model):
-    identifier = schemas.StringType(required=True)
-    type = schemas.StringType(required=True)
-    data = schemas.StringType(required=True)
+    identity = schemas.ModelType(schemas.IdentityInput, required=True)
 
 
 class Login(Resource):
     def post(self):
-        input_data = utils.validate_input(g.request, LoginInput)
+        authorization.assert_can_login_user(g.connections, g.auth)
+        input_data = schemas.validate_input_structure(g.request, LoginInput)
 
-        # code = g.request.form.get('code', None)
+        u = user.lookup_by_valid_identity(g.connections, input_data.to_native())
+        a = {}
 
-        # if not code:
-        #     raise exceptions.InputError
-
-        # from oauth2client.client import OAuth2WebServerFlow
-        # flow = OAuth2WebServerFlow(
-        #     client_id=config['OAUTH_CLIENTS']['google']['client_id'],
-        #     client_secret=config['OAUTH_CLIENTS']['google']['client_secret'],
-        #     scope='',
-        #     redirect_uri='postmessage'
-        # )
-        # credentials = flow.step2_exchange(code)
-        # #validate credentials here...
-        # # credentials.id_token
-
-        # id_type = models.UserIdentity.TYPES.GOOGLE
-        # identifier = credientials.id_token['sub']
-
-        # # Look up the user identity
-        # user_identity = g.sql_session.query(models.UserIdentity).get([id_type, identifier])
-
-        # return credentials.token_response
+        return {
+            'user': schemas.UserResponse(u._to_dict()),
+            'auth': a #schemas.AuthResponse(a.to_privitive())
+        }
