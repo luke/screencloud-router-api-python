@@ -1,7 +1,8 @@
 from flask.ext.restful import Resource
 
-from screencloud.services import authorization, user
+from screencloud.services import authorization, authentication, user
 from screencloud.common import exceptions
+from ..actions.tokens import AuthResponse
 from .. import g, schemas, utils
 
 
@@ -19,10 +20,14 @@ class PostInput(schemas.Model):
     user = schemas.ModelType(UserInput, required=True)
 
 
+class UserResponse(schemas.Model):
+    name = schemas.StringType()
+    email = schemas.EmailType()
+
 
 class List(Resource):
     def get(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def post(self):
         authorization.assert_can_create_user(g.connections, g.auth)
@@ -32,12 +37,21 @@ class List(Resource):
             user_data=input_data.user.to_primitive(),
             identity_data=input_data.identity.to_primitive()
         )
-        return u
+        a = authentication.create_network_remote_user_auth(
+            g.connections,
+            network_id=g.auth.context['network'],
+            user_id=u.id,
+        )
+
+        return {
+            'user': UserResponse(u._to_dict()),
+            'auth': AuthResponse(a.to_primitive())
+        }
 
 
 class Item(Resource):
     def get(self, id):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def patch(self, id):
-        raise NotImplementedError()
+        raise NotImplementedError

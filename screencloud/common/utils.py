@@ -51,7 +51,7 @@ def encrypt_secret(secret):
     Returns:
         The hashed secret.
     """
-    bcrypt_sha256.encrypt(password, rounds=8)
+    return bcrypt_sha256.encrypt(secret, rounds=8)
 
 
 def verify_secret(secret, hash):
@@ -63,4 +63,4 @@ def verify_secret(secret, hash):
     Returns:
         Bool indicating whether or not the secret matches the hash.
     """
-    bcrypt_sha256.verify(secret, hash)
+    return bcrypt_sha256.verify(secret, hash)

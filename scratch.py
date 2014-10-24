@@ -46,4 +46,4 @@ def create_screenbox_auth():
         .filter_by(name='ScreenBox')\
         .first()
 
-    return authentication.create_network_remote_auth(connections, network)
+    return authentication.create_network_remote_auth(connections, network.id)

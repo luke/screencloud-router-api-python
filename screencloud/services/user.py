@@ -24,4 +24,12 @@ def create_with_identity(connections, user_data, identity_data):
         persist=False
     )
 
-    return identity
+    user = smodels.User()
+    user.name = user_data['name']
+    user.email = user_data['email']
+
+    identity.user = user
+    connections.sql.add(user)
+    connections.sql.commit()
+
+    return user

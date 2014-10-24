@@ -150,6 +150,9 @@ class ModelBase(Base):
     """
     __abstract__ = True
 
+    def _to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Account(IdentifierMixin, TimestampMixin, ModelBase):
     """

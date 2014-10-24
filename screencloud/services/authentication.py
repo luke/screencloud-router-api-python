@@ -17,7 +17,7 @@ def create_anonymous_auth(connections, persist=True):
     return auth
 
 
-def create_network_remote_auth(connections, network, persist=True):
+def create_network_remote_auth(connections, network_id, persist=True):
     """
     Generate auth with scope to do the things a remote app (e.g. the
     ScreenBox iOS app) controlling a (top-level) network would probably want
@@ -30,7 +30,7 @@ def create_network_remote_auth(connections, network, persist=True):
     """
     auth = rmodels.Auth()
     auth.context = {
-        'network': network.id,
+        'network': network_id,
     }
     auth.scopes = [
         scopes.NETWORK__READ,
@@ -42,7 +42,7 @@ def create_network_remote_auth(connections, network, persist=True):
     return auth
 
 
-def create_network_remote_user_auth(connections, network, user, persist=True):
+def create_network_remote_user_auth(connections, network_id, user_id, persist=True):
     """
     Generate auth with scope to do the things a remote app (e.g. the
     ScreenBox iOS app) controlling a (top-level) network would probably want
@@ -56,8 +56,8 @@ def create_network_remote_user_auth(connections, network, user, persist=True):
     """
     auth = rmodels.Auth()
     auth.context = {
-        'network': network.id,
-        'user': user.id
+        'network': network_id,
+        'user': user_id
     }
     auth.scopes = [
         scopes.NETWORK__READ,
