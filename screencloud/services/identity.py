@@ -86,10 +86,10 @@ def lookup_and_verify(connections, identity_type, identifier, data):
     identity = lookup(connections, identity_type, identifier)
 
     if not identity:
-        raise UnprocessableError('Could not verify identity.')
+        raise exceptions.UnprocessableError('Could not verify identity.')
 
     if not utils.verify_secret(data['password'], identity.data['password']):
-        raise UnprocessableError('Could not verify identity.')
+        raise exceptions.UnprocessableError('Could not verify identity.')
 
     return identity
 
