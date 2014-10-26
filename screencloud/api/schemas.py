@@ -51,12 +51,15 @@ class UserResponse(HalModel):
 
 
 
-def validate_input_structure(request, scheme):
+def validate_input_structure(request, scheme, partial=False):
     """
     Helper to validate input data.
 
     `scheme` should be a schematics model (inherited from
     `screencloud.api.schemas.Model`).
+
+    For doing PATCH requests, partial=True should be used to allow partial data
+    to pass validation.
 
     Returns:
         The validated input data as an instance of 'scheme'.
@@ -65,7 +68,7 @@ def validate_input_structure(request, scheme):
     """
     try:
         data = scheme(request.get_json())
-        data.validate()
+        data.validate(partial=partial)
     except schematics.exceptions.BaseError as exc:
         raise exceptions.InputError(exc.message)
     return data

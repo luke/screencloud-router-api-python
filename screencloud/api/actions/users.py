@@ -10,7 +10,7 @@ class LoginInput(schemas.Model):
 
 class Login(Resource):
     def post(self):
-        authorization.assert_can_login_user(g.connections, g.auth)
+        authorization.assert_can_login_users(g.connections, g.auth)
         input_data = schemas.validate_input_structure(g.request, LoginInput)
         u = user.lookup_by_valid_identity(
             g.connections, 

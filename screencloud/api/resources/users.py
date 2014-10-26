@@ -9,13 +9,16 @@ class PostInput(schemas.Model):
     identity = schemas.ModelType(schemas.IdentityInput, required=True)
     user = schemas.ModelType(schemas.UserInput, required=True)
 
+class PatchInput(schemas.Model):
+    user = schemas.ModelType(schemas.UserInput, required=True)
+
 
 class List(Resource):
     def get(self):
         raise NotImplementedError
 
     def post(self):
-        authorization.assert_can_create_user(g.connections, g.auth)
+        authorization.assert_can_create_users(g.connections, g.auth)
         input_data = schemas.validate_input_structure(g.request, PostInput)
         u = user.create_with_identity(
             g.connections,
@@ -36,7 +39,23 @@ class List(Resource):
 
 class Item(Resource):
     def get(self, id):
+        if id == 'self':
+            id = g.auth.context['user']
         raise NotImplementedError
 
     def patch(self, id):
-        raise NotImplementedError
+        if id == 'self':
+            id = g.auth.context['user']
+        authorization.assert_can_update_user(g.connections, g.auth, id)
+        input_data = schemas.validate_input_structure(
+            g.request, PatchInput, partial=True
+        )
+        u = user.update(
+            g.connections,
+            user_id=id,
+            user_data=input_data.user.to_native(),
+        )
+
+        return {
+            'user': schemas.UserResponse(u._to_dict()),
+        }

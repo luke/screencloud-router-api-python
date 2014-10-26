@@ -36,6 +36,14 @@ class UnprocessableError(UserMessageError):
     """
     An action could not be performed due to internal constraints.
 
-    User-safe feedback be provided.
+    User-safe feedback should be provided.
+    """
+    pass
+
+class ResourceMissingError(UserMessageError):
+    """
+    The primary resource relating to the action does not exist.
+
+    User-safe feedback be should provided.
     """
     pass

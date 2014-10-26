@@ -80,6 +80,14 @@ class Api(BaseApi):
                 }, 400
             )
 
+        if isinstance(err, exceptions.ResourceMissingError):
+            return make_response(
+                {
+                    'message': 'Not Found',
+                    'errors': err.message
+                }, 404
+            )
+
         if isinstance(err, exceptions.UnprocessableError):
             return make_response(
                 {

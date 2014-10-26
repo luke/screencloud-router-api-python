@@ -35,6 +35,26 @@ def create_with_identity(connections, user_data, identity_data):
     return user
 
 
+def update(connections, user_id, user_data):
+    """
+    Update a user using the provided data.
+
+    Returns:
+        The updated user as a `screencloud.sql.models.User`
+    Raises:
+        UnprocessableError
+    """
+
+    user = connections.sql.query(smodels.User).get(user_id)
+    if not user:
+        raise exceptions.ResourceMissingError({'user' : user_id})
+    for k, v in user_data.items():
+        setattr(user, k, v)
+    connections.sql.commit()
+
+    return user
+
+
 def lookup_by_valid_identity(connections, identity_data):
     """
     Lookup a user from the provided identity_data.  Also validates the identity.
