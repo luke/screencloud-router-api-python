@@ -83,12 +83,12 @@ def lookup_and_verify(connections, identity_type, identifier, data):
     if identity_type == BASIC_NAMESPACED_TYPE:
         identifier = _identifier_to_namespaced(identifier, data['namespace'])
 
-    identity = lookup(identity_type, identifier)
+    identity = lookup(connections, identity_type, identifier)
 
     if not identity:
         raise UnprocessableError('Could not verify identity.')
 
-    if not utils.verify_secret(data['password'], identity.password):
+    if not utils.verify_secret(data['password'], identity.data['password']):
         raise UnprocessableError('Could not verify identity.')
 
     return identity
