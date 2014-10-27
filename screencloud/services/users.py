@@ -4,7 +4,7 @@ from screencloud.common import utils, scopes, exceptions
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
-from . import identity as identity_service
+from . import identities as identity_service
 
 def create_with_identity(connections, user_data, identity_data):
     """
@@ -42,7 +42,7 @@ def update(connections, user_id, user_data):
     Returns:
         The updated user as a `screencloud.sql.models.User`
     Raises:
-        UnprocessableError
+        ResourceMissingError
     """
 
     user = connections.sql.query(smodels.User).get(user_id)

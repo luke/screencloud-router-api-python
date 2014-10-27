@@ -1,12 +1,12 @@
 from flask.ext.restful import Resource
 
-from screencloud.services import authentication
+from screencloud import services
 from .. import g, schemas
 
 
 class Anonymous(Resource):
     def post(self):
-        auth = authentication.create_anonymous_auth(g.connections)
+        auth = services.authentication.create_anonymous_auth(g.connections)
         return {
             'auth': schemas.AuthResponse(auth.to_primitive())
         }

@@ -25,9 +25,11 @@ def lookup(connections, identity_type, identifier):
     Returns:
         None or `screencloud.sql.models.Identity`
     """
-    return connections.sql.query(smodels.UserIdentity)\
-        .filter_by(type=identity_type, identifier=identifier)\
-        .first()
+    primary_key_tuple = smodels.UserIdentity._construct_pk_tuple(
+        type=identity_type,
+        identifier=identifier
+    )
+    return connections.sql.query(smodels.UserIdentity).get(primary_key_tuple)
 
 
 def create(connections, identity_type, identifier, data, persist=True):

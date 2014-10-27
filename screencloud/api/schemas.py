@@ -33,21 +33,26 @@ class IdentityInput(Model):
     type = StringType(required=True)
     data = DictType(StringType(), required=True)
 
-
 class UserInput(Model):
     name = StringType(required=True)
     email = EmailType(required=True)
+
+class AccountInput(Model):
+    name = StringType(required=True)
 
 
 class AuthResponse(HalModel):
     token = StringType()
     scopes = ListType(StringType())
 
-
 class UserResponse(HalModel):
     id = StringType()
     name = StringType()
     email = EmailType()
+
+class AccountResponse(HalModel):
+    id = StringType()
+    name = StringType()
 
 
 

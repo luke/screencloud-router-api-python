@@ -1,6 +1,7 @@
 from flask.ext.restful import Resource
 
-from screencloud.services import authorization, authentication, user
+from screencloud import services
+from screencloud.services import authorization
 from screencloud.common import exceptions
 from .. import g, schemas
 
@@ -20,20 +21,20 @@ class List(Resource):
     def post(self):
         authorization.assert_can_create_users(g.connections, g.auth)
         input_data = schemas.validate_input_structure(g.request, PostInput)
-        u = user.create_with_identity(
+        user = services.users.create_with_identity(
             g.connections,
             user_data=input_data.user.to_native(),
             identity_data=input_data.identity.to_native()
         )
-        a = authentication.create_network_remote_user_auth(
+        auth = services.authentication.create_network_remote_user_auth(
             g.connections,
             network_id=g.auth.context['network'],
-            user_id=u.id,
+            user_id=user.id,
         )
 
         return {
-            'user': schemas.UserResponse(u._to_dict()),
-            'auth': schemas.AuthResponse(a.to_primitive())
+            'user': schemas.UserResponse(user._to_dict()),
+            'auth': schemas.AuthResponse(auth.to_primitive())
         }
 
 
@@ -50,12 +51,12 @@ class Item(Resource):
         input_data = schemas.validate_input_structure(
             g.request, PatchInput, partial=True
         )
-        u = user.update(
+        user = services.users.update(
             g.connections,
             user_id=id,
             user_data=input_data.user.to_native(),
         )
 
         return {
-            'user': schemas.UserResponse(u._to_dict()),
+            'user': schemas.UserResponse(user._to_dict()),
         }

@@ -58,27 +58,28 @@ class HasNetworkMixin(object):
         return relationship('Network', backref=cls.__tablename__)
 
 
-class IsOwnedMixin(object):
+class AssociatedAccountsMixin(object):
     @declared_attr
     def _account_associations(cls):
-        # Value we use for the 'related_type' field of the ownerships table.
+        # Value we use for the 'related_type' field of the account_associations
+        # table.
         related_type = cls.__tablename__
 
-        # Name of the attribute we attach to the OwnershipAssociation to
+        # Name of the attribute we attach to the AccountAssociation to
         # reference objects of the class we're being mixed-into.
-        # E.g. ownership_association.related_obj_user
+        # E.g. account_association.related_obj_user
         proxy_related_attr_name = 'related_obj_%s' % cls.__name__.lower()
 
         # Add attributes onto the Account object so that we can use the
-        # ownership association proxy stuff from that side too.
+        # account association proxy stuff from that side too.
         # E.g. account.users.append(u)
         setattr(
             Account,
             '_%s_associations' % related_type,
             relationship(
-                'OwnershipAssociation',
-                primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
-                foreign_keys=[OwnershipAssociation.account_id],
+                'AccountAssociation',
+                primaryjoin=lambda: Account.id==AccountAssociation.account_id,
+                foreign_keys=[AccountAssociation.account_id],
                 cascade='all, delete-orphan'
             )
         )
@@ -88,26 +89,26 @@ class IsOwnedMixin(object):
             association_proxy(
                 '_%s_associations' % related_type,
                 proxy_related_attr_name,
-                creator=OwnershipAssociation.creator(
+                creator=AccountAssociation.creator(
                     related_type,
                     proxy_related_attr_name
-                )
+                ),
             )
         )
 
 
         # Add the accounts attribute to this mixed-into class, using the
-        # ownerships association_proxy.
+        # accounts association_proxy.
         cls.accounts = association_proxy(
             '_account_associations',
             'account',
-            creator=OwnershipAssociation.creator(related_type, 'account')
+            creator=AccountAssociation.creator(related_type, 'account')
         )
 
         return relationship(
-            'OwnershipAssociation',
-            primaryjoin=lambda: cls.id==OwnershipAssociation.related_id,
-            foreign_keys=[OwnershipAssociation.related_id],
+            'AccountAssociation',
+            primaryjoin=lambda: cls.id==AccountAssociation.related_id,
+            foreign_keys=[AccountAssociation.related_id],
             backref=backref(proxy_related_attr_name, uselist=False),
             cascade='all, delete-orphan'
         )
@@ -117,9 +118,9 @@ class IsOwnedMixin(object):
 # Associations
 # -----------------------------------------------------------------------------
 
-# Anything can be owned by an account (or multiple accounts)
-class OwnershipAssociation(Base):
-    __tablename__ = "ownerships"
+# Anything can be related to an account (or multiple accounts)
+class AccountAssociation(Base):
+    __tablename__ = "account_associations"
 
     account_id = Column(UUID, primary_key=True)
     related_type = Column(String, primary_key=True)
@@ -130,12 +131,12 @@ class OwnershipAssociation(Base):
         """
         Provide a 'creator' function to use with the association proxy.
         """
-        def create_ownership_association(obj):
-            oa = OwnershipAssociation(related_type=related_type)
+        def create_account_association(obj):
+            oa = AccountAssociation(related_type=related_type)
             setattr(oa, attr, obj)
             return oa
 
-        return lambda obj: create_ownership_association(obj)
+        return lambda obj: create_account_association(obj)
 
 
 
@@ -159,22 +160,22 @@ class Account(IdentifierMixin, TimestampMixin, ModelBase):
     An account in the system.
 
     This is the main access control object.  Most other objects in the system
-    are associated to accounts via the IsOwnedMixin.
+    are associated to accounts via the AssociatedAccountsMixin.
     """
     __tablename__ = 'accounts'
 
     name = Column(String)
 
-    ownerships = relationship(
-        'OwnershipAssociation',
-        primaryjoin=lambda: Account.id==OwnershipAssociation.account_id,
-        foreign_keys=[OwnershipAssociation.account_id],
+    associations = relationship(
+        'AccountAssociation',
+        primaryjoin=lambda: Account.id==AccountAssociation.account_id,
+        foreign_keys=[AccountAssociation.account_id],
         backref=backref('account'),
         cascade='all, delete-orphan'
     )
 
 
-class User(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
+class User(IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase):
     """
     A user in the system.
     """
@@ -212,6 +213,17 @@ class UserIdentity(TimestampMixin, ModelBase):
         backref=backref('identities', cascade='all, delete-orphan')
     )
 
+    @classmethod
+    def _construct_pk_tuple(cls, type, identifier):
+        """
+        Helper to retrieve a primary key tuple that can be used with a
+        session.query(UserIdentity).get(pk_tuple) request.  It's here because
+        the order of keys in the tuple depends on the order the primary keys are
+        specified in this class.
+        """
+        return type, identifier
+    
+
 
 class Player(IdentifierMixin, TimestampMixin, ModelBase):
     """
@@ -225,7 +237,9 @@ class Player(IdentifierMixin, TimestampMixin, ModelBase):
     url = Column(String)
 
 
-class Remote(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
+class Remote(
+    IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
+):
     """
     A remote is an app that a user uses to interact with screencloud.
 
@@ -236,7 +250,9 @@ class Remote(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
     name = Column(String)
 
 
-class Network(IdentifierMixin, TimestampMixin, IsOwnedMixin, ModelBase):
+class Network(
+    IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
+):
     """
     A network is primarily a grouping mechanism.  Used by screens and the apps
     that can play on them.
@@ -272,7 +288,9 @@ class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     edit_link = Column(String)
 
 
-class AppInstance(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
+class AppInstance(
+    IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
+):
     """
     An app + config specific to a user.
     """
