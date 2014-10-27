@@ -22,16 +22,11 @@ def lookup_all_for_network_user(connections, network_id, user_id):
     Returns:
         [`screencloud.sql.models.Account`]
     """
-    user = connections.sql.query(smodels.User).get(user_id)
-    network = connections.sql.query(smodels.Network).get(network_id)
-
-    # Limit accounts to only those related to the given network
-    # TODO: efficiency
-    accounts = []
-    for account in user.accounts:
-        if network in account.networks:
-            accounts.append(account)
-    return accounts
+    # Limit accounts to only those related to the given network and user
+    return connections.sql.query(smodels.Account)\
+        .filter(smodels.Account.users.any(id=user_id))\
+        .filter(smodels.Account.networks.any(id=network_id))\
+        .all()
 
 
 def create_for_network_user(connections, network_id, user_id, account_data):
