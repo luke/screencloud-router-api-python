@@ -25,13 +25,14 @@ def lookup_all_for_network_user(connections, network_id, user_id):
     # Limit accounts to only those related to the given network and user
     return connections.sql.query(smodels.Account)\
         .filter(smodels.Account.users.any(id=user_id))\
-        .filter(smodels.Account.networks.any(id=network_id))\
+        .filter(smodels.Account.networks.any(smodels.Network.parent_id==network_id))\
         .all()
 
 
 def create_for_network_user(connections, network_id, user_id, account_data):
     """
-    Create an account using the provided data.
+    Create an account using the provided data.  Also creates a new subnetwork
+    under the given network and associated to the account.
 
     Returns:
         The created account as a `screencloud.sql.models.Account`
@@ -41,10 +42,15 @@ def create_for_network_user(connections, network_id, user_id, account_data):
     user = connections.sql.query(smodels.User).get(user_id)
 
     account = smodels.Account()
-    account.networks.append(network)
+    subnetwork = smodels.Network()
+
     account.users.append(user)
+    account.networks.append(subnetwork)
+    subnetwork.parent = network
+
     for k, v in account_data.items():
         setattr(account, k, v)
+
     connections.sql.add(account)
     connections.sql.commit()
 

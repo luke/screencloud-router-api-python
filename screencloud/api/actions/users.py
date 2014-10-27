@@ -1,7 +1,7 @@
 from flask.ext.restful import Resource
 
 from screencloud import services
-from screencloud.services import authentication
+from screencloud.services import authorization
 from screencloud.common import utils, exceptions
 from .. import g, schemas
 
@@ -17,7 +17,7 @@ class Login(Resource):
             g.connections, 
             input_data.identity.to_native()
         )
-        auth = authentication.create_network_remote_user_auth(
+        auth = services.authentication.create_network_remote_user_auth(
             g.connections,
             network_id=g.auth.context['network'],
             user_id=user.id,
