@@ -289,7 +289,7 @@ class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
 
 
 class AppInstance(
-    IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
+    IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase
 ):
     """
     An app + config specific to a user.
