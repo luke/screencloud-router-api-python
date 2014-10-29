@@ -31,18 +31,21 @@ class List(Resource):
             network_id=g.auth.context['network'],
             user_id=user.id,
         )
-
         return {
             'user': schemas.UserResponse(user._to_dict()),
             'auth': schemas.AuthResponse(auth.to_primitive())
-        }
+        }, 201
 
 
 class Item(Resource):
     def get(self, id):
         if id == 'self':
             id = g.auth.context['user']
-        raise NotImplementedError
+        authorization.assert_can_get_user(g.connections, g.auth, id)
+        user = services.users.lookup(g.connections, id)
+        return {
+            'user': schemas.UserResponse(user._to_dict())
+        }
 
     def patch(self, id):
         if id == 'self':
@@ -56,7 +59,6 @@ class Item(Resource):
             user_id=id,
             user_data=input_data.user.to_native(),
         )
-
         return {
             'user': schemas.UserResponse(user._to_dict()),
         }

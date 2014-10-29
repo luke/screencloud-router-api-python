@@ -35,7 +35,7 @@ class List(Resource):
         )
         return {
             'account': schemas.AccountResponse(account._to_dict())
-        }
+        }, 201
 
 
 class Item(Resource):

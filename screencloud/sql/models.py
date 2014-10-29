@@ -288,14 +288,3 @@ class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     edit_link = Column(String)
 
 
-class AppInstance(
-    IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase
-):
-    """
-    An app + config specific to a user.
-    """
-    __tablename__ = 'app_instances'
-
-    app_id = Column(UUID, ForeignKey(App.id))
-    app = relationship(App, backref=backref('app_instances'))
-    settings = Column(JSON)

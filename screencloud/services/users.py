@@ -55,6 +55,16 @@ def update(connections, user_id, user_data):
     return user
 
 
+def lookup(connections, user_id):
+    """
+    Try to find the user in the system.
+
+    Returns:
+        None or `screencloud.sql.models.User`
+    """
+    return connections.sql.query(smodels.User).get(user_id)
+
+
 def lookup_by_valid_identity(connections, identity_data):
     """
     Lookup a user from the provided identity_data.  Also validates the identity.
