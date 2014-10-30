@@ -15,7 +15,7 @@ class List(Resource):
         )
         return {
             'apps': [
-                schemas.AppResponse(a._to_dict()) for a in apps
+                schemas.AppResponse.from_object(a) for a in apps
             ]
         }
 
@@ -25,5 +25,5 @@ class Item(Resource):
         authorization.assert_can_get_app(g.connections, g.auth, id)
         app = services.apps.lookup(g.connections, id)
         return {
-            'app': schemas.AppResponse(app._to_dict())
+            'app': schemas.AppResponse.from_object(app)
         }

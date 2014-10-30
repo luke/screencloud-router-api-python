@@ -32,8 +32,8 @@ class List(Resource):
             user_id=user.id,
         )
         return {
-            'user': schemas.UserResponse(user._to_dict()),
-            'auth': schemas.AuthResponse(auth.to_primitive())
+            'user': schemas.UserResponse.from_object(user),
+            'auth': schemas.AuthResponse.from_object(auth)
         }, 201
 
 
@@ -44,7 +44,7 @@ class Item(Resource):
         authorization.assert_can_get_user(g.connections, g.auth, id)
         user = services.users.lookup(g.connections, id)
         return {
-            'user': schemas.UserResponse(user._to_dict())
+            'user': schemas.UserResponse.from_object(user)
         }
 
     def patch(self, id):
@@ -60,5 +60,5 @@ class Item(Resource):
             user_data=input_data.user.to_native(),
         )
         return {
-            'user': schemas.UserResponse(user._to_dict()),
+            'user': schemas.UserResponse.from_object(user)
         }

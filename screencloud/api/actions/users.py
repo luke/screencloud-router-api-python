@@ -24,6 +24,6 @@ class Login(Resource):
         )
 
         return {
-            'user': schemas.UserResponse(user._to_dict()),
-            'auth': schemas.AuthResponse(auth.to_primitive())
+            'user': schemas.UserResponse.from_object(user),
+            'auth': schemas.AuthResponse.from_object(auth)
         }

@@ -8,11 +8,11 @@ class Anonymous(Resource):
     def post(self):
         auth = services.authentication.create_anonymous_auth(g.connections)
         return {
-            'auth': schemas.AuthResponse(auth.to_primitive())
+            'auth': schemas.AuthResponse.from_object(auth)
         }
 
 class Verify(Resource):
     def get(self):
         return {
-            'auth': schemas.AuthResponse(g.auth.to_primitive())
+            'auth': schemas.AuthResponse.from_object(g.auth)
         }

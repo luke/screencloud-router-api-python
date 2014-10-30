@@ -12,10 +12,45 @@ class Model(BaseModel):
 
     This just allows us to default `strict=False` on validation so that we can
     ignore rogue fields posted through to the api.
+
+    Also adds the `from_object` class method to help convert model objects
+    returned from the service layer to schematics models for output.
     """
 
     def __init__(self, raw_data=None, deserialize_mapping=None, strict=False):
         return super(Model, self).__init__(raw_data, deserialize_mapping, strict)
+
+    @classmethod
+    def from_object(cls, obj, initial_data=None):
+        """
+        Convert an arbitrary object (with appropriately named attributes) into
+        instances of this class.
+
+        Uses `getattr` to read values from the model.
+        """
+        def field_to_value(field, obj_val):
+            if isinstance(field, ModelType):
+                return field.model_class.from_object(obj_val)
+            else:
+                return obj_val
+
+        data = initial_data or {}
+
+        for name, field in cls.fields.items():
+            if name in data:
+                continue
+
+            obj_attr = getattr(obj, name)
+
+            if isinstance(field, ListType):
+                inner_field = field.field
+                data[name] = [
+                    field_to_value(inner_field, val) for val in obj_attr
+                ]
+            else:
+                data[name] = field_to_value(field, obj_attr)
+
+        return cls(data)
 
 
 class HalModel(Model):
@@ -50,9 +85,14 @@ class UserResponse(HalModel):
     name = StringType()
     email = EmailType()
 
+class NetworkResponse(HalModel):
+    id = StringType()
+    name = StringType()
+
 class AccountResponse(HalModel):
     id = StringType()
     name = StringType()
+    networks = ListType(ModelType(NetworkResponse))
 
 class AppResponse(HalModel):
     id = StringType()

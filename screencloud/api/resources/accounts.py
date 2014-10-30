@@ -18,9 +18,10 @@ class List(Resource):
             network_id=g.auth.context['network'],
             user_id=g.auth.context['user']
         )
+
         return {
             'accounts': [
-                schemas.AccountResponse(a._to_dict()) for a in accounts
+                schemas.AccountResponse.from_object(a) for a in accounts
             ]
         }
 
@@ -34,7 +35,7 @@ class List(Resource):
             account_data=input_data.account.to_native(),
         )
         return {
-            'account': schemas.AccountResponse(account._to_dict())
+            'account': schemas.AccountResponse.from_object(account)
         }, 201
 
 
@@ -43,7 +44,7 @@ class Item(Resource):
         authorization.assert_can_get_account(g.connections, g.auth, id)
         account = services.accounts.lookup(g.connections, id)
         return {
-            'account': schemas.AccountResponse(account._to_dict())
+            'account': schemas.AccountResponse.from_object(account)
         }
 
     def patch(self, id):
@@ -55,5 +56,5 @@ class Item(Resource):
             account_data=input_data.account.to_native(),
         )
         return {
-            'account': schemas.AccountResponse(account._to_dict())
+            'account': schemas.AccountResponse.from_object(account)
         }
