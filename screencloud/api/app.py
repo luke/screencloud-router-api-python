@@ -183,6 +183,7 @@ def create_wsgi_app(name):
     api.add_resource(actions.users.Login, '/users/login')
     api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
     api.add_resource(actions.tokens.Verify, '/tokens/verify')
+    api.add_resource(actions.tokens.PubSub, '/tokens/pubsub')
 
     # Attach non-api routes
     app.register_blueprint(views.health.bp, url_prefix='/health')

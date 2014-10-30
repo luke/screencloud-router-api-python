@@ -9,6 +9,7 @@ alembic==0.6.7
 aniso8601==0.83
 argparse==1.2.1
 click==3.3
+firebase-token-generator==2.0.0
 gunicorn==19.1.1
 hiredis==0.1.4
 httplib2==0.9
