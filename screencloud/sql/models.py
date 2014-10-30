@@ -78,8 +78,14 @@ class AssociatedAccountsMixin(object):
             '_%s_associations' % related_type,
             relationship(
                 'AccountAssociation',
-                primaryjoin=lambda: Account.id==AccountAssociation.account_id,
-                foreign_keys=[AccountAssociation.account_id],
+                primaryjoin=lambda: and_(
+                    Account.id==AccountAssociation.account_id,
+                    related_type==AccountAssociation.related_type
+                ),
+                foreign_keys=[
+                    AccountAssociation.account_id,
+                    AccountAssociation.related_type
+                ],
                 cascade='all, delete-orphan'
             )
         )
@@ -107,8 +113,14 @@ class AssociatedAccountsMixin(object):
 
         return relationship(
             'AccountAssociation',
-            primaryjoin=lambda: cls.id==AccountAssociation.related_id,
-            foreign_keys=[AccountAssociation.related_id],
+            primaryjoin=lambda: and_(
+                cls.id==AccountAssociation.related_id,
+                related_type==AccountAssociation.related_type
+            ),
+            foreign_keys=[
+                AccountAssociation.related_id,
+                AccountAssociation.related_type
+            ],
             backref=backref(proxy_related_attr_name, uselist=False),
             cascade='all, delete-orphan'
         )
@@ -132,9 +144,9 @@ class AccountAssociation(Base):
         Provide a 'creator' function to use with the association proxy.
         """
         def create_account_association(obj):
-            oa = AccountAssociation(related_type=related_type)
-            setattr(oa, attr, obj)
-            return oa
+            aa = AccountAssociation(related_type=related_type)
+            setattr(aa, attr, obj)
+            return aa
 
         return lambda obj: create_account_association(obj)
 
@@ -222,7 +234,7 @@ class UserIdentity(TimestampMixin, ModelBase):
         specified in this class.
         """
         return type, identifier
-    
+
 
 
 class Player(IdentifierMixin, TimestampMixin, ModelBase):
