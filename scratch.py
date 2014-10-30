@@ -34,8 +34,8 @@ def create_screenbox_models():
     app.name = 'ScreenBox'
     app.description = 'Play dropbox content.'
     app.keywords = ['dropbox', 'playlist']
-    app.setup_link = 'TODO'
-    app.edit_link = 'TODO'
+    app.setup_link = 'https://apps.screencloud.io/screenbox/setup'
+    app.edit_link = 'https://apps.screencloud.io/screenbox/edit'
     network.apps.append(app)
 
     sql_session.add(account)
