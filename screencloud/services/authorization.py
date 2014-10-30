@@ -74,3 +74,27 @@ def assert_can_get_account(connections, auth, account_id):
         return
 
     raise exceptions.AuthorizationError
+
+
+def assert_can_get_apps(connections, auth):
+    if scopes.NETWORK__READ in auth.scopes:
+        return
+    raise exceptions.AuthorizationError
+
+
+def assert_can_get_app(connections, auth, app_id):
+    if scopes.NETWORK__READ not in auth.scopes:
+        raise exceptions.AuthorizationError
+
+    network = connections.sql.query(smodels.Network).get(
+        auth.context['network']
+    )
+    app = connections.sql.query(smodels.App).get(app_id)
+
+    if not app:
+        raise exceptions.ResourceMissingError({'app' : app_id})
+
+    if app in network.apps:
+        return
+
+    raise exceptions.AuthorizationError

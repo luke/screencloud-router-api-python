@@ -175,6 +175,8 @@ def create_wsgi_app(name):
     api.add_resource(resources.users.Item, '/users/<string:id>')
     api.add_resource(resources.accounts.List, '/accounts')
     api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
+    api.add_resource(resources.apps.List, '/apps')
+    api.add_resource(resources.apps.Item, '/apps/<string:id>')
 
 
     # Attach the api action routes (not necessarily RESTy)

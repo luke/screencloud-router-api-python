@@ -54,6 +54,14 @@ class AccountResponse(HalModel):
     id = StringType()
     name = StringType()
 
+class AppResponse(HalModel):
+    id = StringType()
+    name = StringType()
+    keywords = ListType(StringType())
+    description = StringType()
+    setup_link = StringType()
+    edit_link = StringType()
+
 
 
 def validate_input_structure(request, scheme, partial=False):

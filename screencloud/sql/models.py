@@ -286,5 +286,3 @@ class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
     description = Column(Text)
     setup_link = Column(String)
     edit_link = Column(String)
-
-

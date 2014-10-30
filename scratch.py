@@ -32,8 +32,10 @@ def create_screenbox_models():
 
     app = smodels.App()
     app.name = 'ScreenBox'
-    app.setup_link = 'blah'
-    app.edit_link = 'blah'
+    app.description = 'Play dropbox content.'
+    app.keywords = ['dropbox', 'playlist']
+    app.setup_link = 'TODO'
+    app.edit_link = 'TODO'
     network.apps.append(app)
 
     sql_session.add(account)
