@@ -1,3 +1,5 @@
 DEBUG = ('{{ getv "/debug" }}').lower() == 'true'
 SQL_DB_URI = '{{ getv "/sql_db_uri" }}'
 REDIS_DB_URI = '{{ getv "/redis_db_uri" }}'
+SUBHUB_URI = '{{ getv "/subhub_uri" }}'
+SUBHUB_SECRET = '{{ getv "/subhub_secret" }}'
