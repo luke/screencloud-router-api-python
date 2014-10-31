@@ -98,3 +98,9 @@ def assert_can_get_app(connections, auth, app_id):
         return
 
     raise exceptions.AuthorizationError
+
+
+def assert_can_access_subhub_for_network_user(connections, auth):
+    if scopes.NETWORK__USER__FULL in auth.scopes:
+        return
+    raise exceptions.AuthorizationError

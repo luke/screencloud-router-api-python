@@ -1,2 +1,3 @@
-from . import authorization, authentication, identities, users, accounts, apps
-
+from . import (
+    authorization, authentication, identities, users, accounts, apps, subhub
+)

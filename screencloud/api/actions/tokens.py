@@ -1,16 +1,15 @@
 from flask.ext.restful import Resource
-import firebase_token_generator
 
 from screencloud import services, config
 from .. import g, schemas
 
 
-class Anonymous(Resource):
-    def post(self):
-        auth = services.authentication.create_anonymous_auth(g.connections)
-        return {
-            'auth': schemas.AuthResponse.from_object(auth)
-        }
+# class Anonymous(Resource):
+#     def post(self):
+#         auth = services.authentication.create_anonymous_auth(g.connections)
+#         return {
+#             'auth': schemas.AuthResponse.from_object(auth)
+#         }
 
 class Verify(Resource):
     def get(self):
@@ -18,15 +17,17 @@ class Verify(Resource):
             'auth': schemas.AuthResponse.from_object(g.auth)
         }
 
-class PubSub(Resource):
+class SubHub(Resource):
     def get(self):
-        jwt = firebase_token_generator.create_token(
-            config.get('PUBSUB_SECRET'),
-            {
-                'uid': 'blah'
-            }
+        services.authorization.assert_can_access_subhub_for_network_user(
+            g.connections, g.auth
+        )
+        jwt = services.subhub.create_jwt_for_network_user(
+            g.connections,
+            user_id=g.auth.context['user'],
+            network_id=g.auth.context['network']
         )
         return {
-            'uri': config.get('PUBSUB_URI'),
-            'token': jwt
+            'uri': config.get('SUBHUB_URI'),
+            'jwt': jwt
         }
