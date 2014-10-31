@@ -3,6 +3,8 @@ from flask.ext.restful import Resource
 from screencloud import services, config
 from .. import g, schemas
 
+class SubHubPostInput(schemas.Model):
+    network_id = schemas.StringType(required=True)
 
 # class Anonymous(Resource):
 #     def post(self):
@@ -18,14 +20,17 @@ class Verify(Resource):
         }
 
 class SubHub(Resource):
-    def get(self):
-        services.authorization.assert_can_access_subhub_for_network_user(
-            g.connections, g.auth
+    def post(self):
+        input_data = schemas.validate_input_structure(
+            g.request, SubHubPostInput
+        )
+        services.authorization.assert_can_create_subhub_jwt_for_network(
+            g.connections, g.auth, input_data.network_id
         )
         jwt = services.subhub.create_jwt_for_network_user(
             g.connections,
             user_id=g.auth.context['user'],
-            network_id=g.auth.context['network']
+            network_id=input_data.network_id
         )
         return {
             'uri': config.get('SUBHUB_URI'),

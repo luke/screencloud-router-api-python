@@ -100,7 +100,29 @@ def assert_can_get_app(connections, auth, app_id):
     raise exceptions.AuthorizationError
 
 
-def assert_can_access_subhub_for_network_user(connections, auth):
-    if scopes.NETWORK__USER__FULL in auth.scopes:
-        return
-    raise exceptions.AuthorizationError
+def assert_can_create_subhub_jwt_for_network(connections, auth, network_id):
+    if scopes.NETWORK__USER__FULL not in auth.scopes:
+        raise exceptions.AuthorizationError
+
+    # Network must be a sub-network of the authed network, and must belong to
+    # the authed user.
+    network = connections.sql.query(smodels.Network).get(network_id)
+
+    if not network:
+        raise exceptions.ResourceMissingError({'network' : network_id})
+
+    if network.parent_id != auth.context['network']:
+        raise exceptions.AuthorizationError
+
+    linking_account = connections.sql.query(
+        smodels.Account
+    ).filter(
+        smodels.Account.users.any(id=auth.context['user'])
+    ).filter(
+        smodels.Account.networks.any(id=network_id)
+    ).first()
+
+    if not linking_account:
+        raise exceptions.AuthorizationError
+
+    return
