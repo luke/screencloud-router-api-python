@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask.ext.restful import Api as BaseApi
 import schematics.exceptions
 
@@ -120,6 +120,9 @@ def create_wsgi_app(name):
     g.app = app
     g.api = api
 
+    @app.route("/test", methods=['GET'])
+    def test_route():
+        return jsonify(test="ok")
 
     @app.before_request
     def attach_globals():
