@@ -122,7 +122,7 @@ def create_wsgi_app(name):
 
     @app.route("/test", methods=['GET'])
     def test_route():
-        return jsonify(test="ok")
+        return jsonify(test="ok!")
 
     @app.before_request
     def attach_globals():
