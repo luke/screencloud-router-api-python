@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily rebalance BTRFS to reclaim disk space
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/btrfs fi balance start -dusage=100 /
+
+[Install]
+WantedBy=multi-user.target
