@@ -4,18 +4,6 @@ from screencloud.common import utils, scopes, exceptions
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
-def create_anonymous_auth(connections, persist=True):
-    """
-    Generate an auth token with anonymous scope.
-
-    Returns:
-        An Authentication model object.
-    """
-    auth = rmodels.Auth()
-    if persist:
-        auth._rpersist(connections.redis)
-    return auth
-
 
 def create_network_remote_auth(connections, network_id, persist=True):
     """

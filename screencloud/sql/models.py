@@ -233,32 +233,6 @@ class UserIdentity(TimestampMixin, ModelBase):
         return type, identifier
 
 
-
-class Player(IdentifierMixin, TimestampMixin, ModelBase):
-    """
-    A player represents the primary software that is run on a screen and
-    interacts with screencloud to load apps etc.
-    """
-    __tablename__ = 'players'
-
-    name = Column(String)
-    version = Column(String)
-    url = Column(String)
-
-
-class Remote(
-    IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
-):
-    """
-    A remote is an app that a user uses to interact with screencloud.
-
-    E.g. The ScreenBox iOS app.
-    """
-    __tablename__ = 'remotes'
-
-    name = Column(String)
-
-
 class Network(
     IdentifierMixin, TimestampMixin, AssociatedAccountsMixin, ModelBase
 ):
@@ -279,19 +253,3 @@ class Network(
         primaryjoin='Network.parent_id == remote(Network.id)',
         backref=backref('children', cascade='all, delete-orphan')
     )
-
-    player_id = Column(UUID, ForeignKey(Player.id))
-    player = relationship(Player, backref=backref('networks'))
-
-
-class App(IdentifierMixin, TimestampMixin, HasNetworkMixin, ModelBase):
-    """
-    An app is software that is run on a screen (via a player).
-    """
-    __tablename__ = 'apps'
-
-    name = Column(String)
-    keywords = Column(ARRAY(String))
-    description = Column(Text)
-    setup_link = Column(String)
-    edit_link = Column(String)
