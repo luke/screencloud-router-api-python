@@ -80,11 +80,6 @@ class AuthResponse(HalModel):
     token = StringType()
     scopes = ListType(StringType())
 
-class UserResponse(HalModel):
-    id = StringType()
-    name = StringType()
-    email = EmailType()
-
 class NetworkResponse(HalModel):
     id = StringType()
     name = StringType()
@@ -93,6 +88,12 @@ class AccountResponse(HalModel):
     id = StringType()
     name = StringType()
     networks = ListType(ModelType(NetworkResponse))
+
+class UserResponse(HalModel):
+    id = StringType()
+    name = StringType()
+    email = EmailType()
+    accounts = ListType(ModelType(AccountResponse))
 
 
 def validate_input_structure(request, scheme, partial=False):

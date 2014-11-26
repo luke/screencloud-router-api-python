@@ -6,9 +6,12 @@ from screencloud.sql import models as smodels
 
 from . import identities as identity_service
 
-def create_with_identity(connections, user_data, identity_data):
+def create_with_identity(connections, user_data, identity_data, network_id):
     """
     Create a new user and associated identity using the provided data dicts.
+
+    We also create a default account and network for this user (as a sub-network
+    of the given top-level network).
 
     Returns:
         The new user as a `screencloud.sql.models.User`
@@ -27,6 +30,13 @@ def create_with_identity(connections, user_data, identity_data):
     user = smodels.User()
     user.name = user_data['name']
     user.email = user_data['email']
+
+    account = smodels.Account()
+    user.accounts.append(account)
+
+    network = smodels.Network()
+    network.parent_id = network_id
+    account.networks.append(network)
 
     identity.user = user
     connections.sql.add(user)

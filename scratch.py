@@ -15,37 +15,17 @@ redis_session = redis.client_factory()
 connections = utils.Connections(redis_session, sql_session)
 
 def create_screenbox_models():
-    account = smodels.Account()
-    account.name = 'ScreenBox'
-
-    remote = smodels.Remote()
-    remote.name = 'ScreenBox'
-    account.remotes.append(remote)
-
     network = smodels.Network()
     network.name = 'ScreenBox'
-    account.networks.append(network)
 
-    player = smodels.Player()
-    player.url = 'http://player.screencloud.io/index.html'
-    network.player = player
-
-    app = smodels.App()
-    app.name = 'ScreenBox'
-    app.description = 'Play dropbox content.'
-    app.keywords = ['dropbox', 'playlist']
-    app.setup_link = 'https://apps.screencloud.io/screenbox/setup'
-    app.edit_link = 'https://apps.screencloud.io/screenbox/edit'
-    network.apps.append(app)
-
-    sql_session.add(account)
+    sql_session.add(network)
     sql_session.commit()
 
-    return account, remote, network, player, app
+    return network
 
 def create_screenbox_auth():
     network = sql_session.query(smodels.Network)\
         .filter_by(name='ScreenBox')\
         .first()
 
-    return authentication.create_network_remote_auth(connections, network.id)
+    return authentication.create_consumerapp_auth(connections, network.id)
