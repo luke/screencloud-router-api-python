@@ -64,9 +64,26 @@ class HalModel(Model):
 
 
 class IdentityInput(Model):
+    """
+    Generic Identity data.  Best to use specific ones.
+    """
     identifier = StringType(required=True)
     type = StringType(required=True)
     data = DictType(StringType(), required=True)
+
+class NetworkIdentityInput(Model):
+    """
+    Identity tied to a specific top-level network.
+
+    Will use the basic-namespaced identity type, with the namespace being the
+    network_id of the top-level network this request is being performed under.
+
+    The only data needed from the user/comsumer-app is the identifier and a
+    secret.
+    """
+    identifier = StringType(required=True)
+    secret = StringType(required=True)
+
 
 class UserInput(Model):
     name = StringType(required=True)
