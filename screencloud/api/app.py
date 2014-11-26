@@ -120,9 +120,6 @@ def create_wsgi_app(name):
     g.app = app
     g.api = api
 
-    @app.route("/test", methods=['GET'])
-    def test_route():
-        return jsonify(test="ok!")
 
     @app.before_request
     def attach_globals():
@@ -167,30 +164,20 @@ def create_wsgi_app(name):
         token = _get_token_from_header(header)
         g.auth = authentication.lookup(g.connections, token)
 
-    @app.before_request
-    def br_authorize():
-        #TODO: ... acl stuff ...
-        pass
-
 
     # Attach the api REST resource routes
     api.add_resource(resources.users.List, '/users')
     api.add_resource(resources.users.Item, '/users/<string:id>')
     api.add_resource(resources.accounts.List, '/accounts')
     api.add_resource(resources.accounts.Item, '/accounts/<string:id>')
-    api.add_resource(resources.apps.List, '/apps')
-    api.add_resource(resources.apps.Item, '/apps/<string:id>')
-
 
     # Attach the api action routes (not necessarily RESTy)
     api.add_resource(actions.users.Login, '/users/login')
-    # api.add_resource(actions.tokens.Anonymous, '/tokens/anonymous', public=True)
     api.add_resource(actions.tokens.Verify, '/tokens/verify')
     api.add_resource(actions.tokens.SubHub, '/tokens/subhub')
 
     # Attach non-api routes
     app.register_blueprint(views.health.bp, url_prefix='/health')
-    app.register_blueprint(views.testing.bp, url_prefix='/testing')
 
     # Werkzeug middleware to ensure a clean 'g' object per request.
     app.wsgi_app = local_manager.make_middleware(app.wsgi_app)

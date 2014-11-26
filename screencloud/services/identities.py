@@ -11,7 +11,9 @@ from screencloud.sql import models as smodels
 # Simple hashed password type.
 BASIC_TYPE = 'basic'
 
-# Simple hashed password type where the identifier is namespaced to avoid clashes.
+# Simple hashed password type where the identifier is namespaced to avoid
+# clashes.  This is used by consumer apps to create an identity namespaced to
+# their top-level network.
 BASIC_NAMESPACED_TYPE = 'basic-namespaced'
 
 # Google OAuth type.
@@ -60,7 +62,7 @@ def create(connections, identity_type, identifier, data, persist=True):
     identity = smodels.UserIdentity()
     identity.type = identity_type
     identity.identifier = identifier
-    identity.data = { 'password': utils.encrypt_secret(data['password']) }
+    identity.data = { 'secret': utils.encrypt_secret(data['secret']) }
 
     if persist:
         connections.sql.add(identity)
@@ -72,7 +74,7 @@ def create(connections, identity_type, identifier, data, persist=True):
 def lookup_and_verify(connections, identity_type, identifier, data):
     """
     Try to find the identity in the system and verify that the provided data
-    matches the saved data.  (e.g. check the password...)
+    matches the saved data.  (e.g. check the secret...)
 
     Returns:
         `screencloud.sql.models.Identity`
@@ -90,7 +92,7 @@ def lookup_and_verify(connections, identity_type, identifier, data):
     if not identity:
         raise exceptions.UnprocessableError('Could not verify identity.')
 
-    if not utils.verify_secret(data['password'], identity.data['password']):
+    if not utils.verify_secret(data['secret'], identity.data['secret']):
         raise exceptions.UnprocessableError('Could not verify identity.')
 
     return identity

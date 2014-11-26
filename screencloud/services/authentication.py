@@ -4,23 +4,11 @@ from screencloud.common import utils, scopes, exceptions
 from screencloud.redis import models as rmodels
 from screencloud.sql import models as smodels
 
-def create_anonymous_auth(connections, persist=True):
-    """
-    Generate an auth token with anonymous scope.
 
-    Returns:
-        An Authentication model object.
+def create_consumerapp_auth(connections, network_id, persist=True):
     """
-    auth = rmodels.Auth()
-    if persist:
-        auth._rpersist(connections.redis)
-    return auth
-
-
-def create_network_remote_auth(connections, network_id, persist=True):
-    """
-    Generate auth with scope to do the things a remote app (e.g. the
-    ScreenBox iOS app) controlling a (top-level) network would probably want
+    Generate auth with scope to do the things a consumer application (e.g. the
+    ScreenBox backend app) controlling a (top-level) network would probably want
     to do.
 
     E.g. Sign-up new users and generate relevant auth tokens for them.
@@ -42,10 +30,12 @@ def create_network_remote_auth(connections, network_id, persist=True):
     return auth
 
 
-def create_network_remote_user_auth(connections, network_id, user_id, persist=True):
+def create_consumerapp_user_auth(
+    connections, network_id, user_id, persist=True
+):
     """
-    Generate auth with scope to do the things a remote app (e.g. the
-    ScreenBox iOS app) controlling a (top-level) network would probably want
+    Generate auth with scope to do the things a consumer application (e.g. the
+    ScreenBox backend app) controlling a (top-level) network would probably want
     to do on behalf of a user.
 
     E.g. Create accounts (through sub-networks) in that network and generate

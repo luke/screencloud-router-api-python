@@ -1,1 +1,1 @@
-from . import users, accounts, apps
+from . import users, accounts
