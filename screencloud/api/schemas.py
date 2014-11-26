@@ -110,7 +110,6 @@ class UserResponse(HalModel):
     id = StringType()
     name = StringType()
     email = EmailType()
-    accounts = ListType(ModelType(AccountResponse))
 
 
 def validate_input_structure(request, scheme, partial=False):

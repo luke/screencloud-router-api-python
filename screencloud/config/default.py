@@ -6,3 +6,6 @@ SQL_DB_URI = '' # 'postgresql://screencloud:screencloud@localhost/screencloud'
 REDIS_DB_URI = '' # 'redis://localhost:6379/0'
 SUBHUB_URI = '' # 'https://screencloud.firebaseio.com/'
 SUBHUB_SECRET = '' # 'some_firebase_secret'
+
+# Default expiry time for generated screen tickets in seconds
+SCREEN_TICKET_EXPIRY = 60 * 60 # 1 hour
