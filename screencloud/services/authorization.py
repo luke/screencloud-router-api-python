@@ -42,16 +42,17 @@ def assert_can_update_account(connections, auth, account_id):
     if scopes.NETWORK__USER__FULL not in auth.scopes:
         raise exceptions.AuthorizationError
 
-    network = connections.sql.query(smodels.Network).get(
-        auth.context['network']
-    )
+    network_id = auth.context['network']
+
     user = connections.sql.query(smodels.User).get(auth.context['user'])
     account = connections.sql.query(smodels.Account).get(account_id)
 
     if not account:
         raise exceptions.ResourceMissingError({'account' : account_id})
 
-    if user in account.users and network in account.networks:
+    related_top_level_network_ids = [n.parent_id for n in account.networks]
+
+    if user in account.users and network_id in related_top_level_network_ids:
         return
 
     raise exceptions.AuthorizationError
@@ -61,51 +62,45 @@ def assert_can_get_account(connections, auth, account_id):
     if scopes.NETWORK__USER__FULL not in auth.scopes:
         raise exceptions.AuthorizationError
 
-    network = connections.sql.query(smodels.Network).get(
-        auth.context['network']
-    )
+    network_id = auth.context['network']
+
     user = connections.sql.query(smodels.User).get(auth.context['user'])
     account = connections.sql.query(smodels.Account).get(account_id)
 
     if not account:
         raise exceptions.ResourceMissingError({'account' : account_id})
 
-    if user in account.users and network in account.networks:
+    related_top_level_network_ids = [n.parent_id for n in account.networks]
+
+    if user in account.users and network_id in related_top_level_network_ids:
         return
 
     raise exceptions.AuthorizationError
 
 
-# TODO
-# def assert_can_generate_screen_ticket_for_network(connections, auth, network_id):
-#     if scopes.NETWORK__USER__FULL not in auth.scopes:
-#         raise exceptions.AuthorizationError
-#     return
+def assert_can_generate_screen_ticket_for_network(connections, auth, network_id):
+    if scopes.NETWORK__USER__FULL not in auth.scopes:
+        raise exceptions.AuthorizationError
 
+    # Network must be a sub-network of the authed network, and must belong to
+    # the authed user.
+    network = connections.sql.query(smodels.Network).get(network_id)
 
-# def assert_can_create_subhub_jwt_for_network(connections, auth, network_id):
-#     if scopes.NETWORK__USER__FULL not in auth.scopes:
-#         raise exceptions.AuthorizationError
+    if not network:
+        raise exceptions.ResourceMissingError({'network' : network_id})
 
-#     # Network must be a sub-network of the authed network, and must belong to
-#     # the authed user.
-#     network = connections.sql.query(smodels.Network).get(network_id)
+    if network.parent_id != auth.context['network']:
+        raise exceptions.AuthorizationError
 
-#     if not network:
-#         raise exceptions.ResourceMissingError({'network' : network_id})
+    linking_account = connections.sql.query(
+        smodels.Account
+    ).filter(
+        smodels.Account.users.any(id=auth.context['user'])
+    ).filter(
+        smodels.Account.networks.any(id=network_id)
+    ).first()
 
-#     if network.parent_id != auth.context['network']:
-#         raise exceptions.AuthorizationError
+    if not linking_account:
+        raise exceptions.AuthorizationError
 
-#     linking_account = connections.sql.query(
-#         smodels.Account
-#     ).filter(
-#         smodels.Account.users.any(id=auth.context['user'])
-#     ).filter(
-#         smodels.Account.networks.any(id=network_id)
-#     ).first()
-
-#     if not linking_account:
-#         raise exceptions.AuthorizationError
-
-#     return
+    return

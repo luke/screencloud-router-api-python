@@ -10,8 +10,8 @@ GOD = 'god'
 #   network
 NETWORK__READ = 'network:read'
 
-# Full control for actions of a user within a given network, e.g. CRUD
-# user-accounts and associated sub-networks for the given network.
+# Full control for actions of a user within a given (top-level) network,
+# e.g. CRUD user-accounts and associated sub-networks for the given network.
 # Context required:
 #   network
 #   user

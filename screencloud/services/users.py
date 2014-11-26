@@ -12,9 +12,7 @@ def create_under_network_with_identity(
     """
     Create a new user and associated identity using the provided data dicts.
 
-    The identity will be namespaced to the given (top-level) network.  We also
-    create a default account and network for this user (as a sub-network of the
-    given top-level network).
+    The identity will be namespaced to the given (top-level) network.
 
     Expects identity_data like:
         {
@@ -42,13 +40,6 @@ def create_under_network_with_identity(
     user = smodels.User()
     user.name = user_data['name']
     user.email = user_data['email']
-
-    account = smodels.Account()
-    user.accounts.append(account)
-
-    network = smodels.Network()
-    network.parent_id = network_id
-    account.networks.append(network)
 
     identity.user = user
     connections.sql.add(user)
