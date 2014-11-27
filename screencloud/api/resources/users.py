@@ -22,7 +22,7 @@ class List(Resource):
         authorization.assert_can_create_users(g.connections, g.auth)
         input_data = schemas.validate_input_structure(g.request, PostInput)
 
-        user, account = services.users.create_under_network_with_identity(
+        user = services.users.create_under_network_with_identity(
             g.connections,
             network_id=g.auth.context['network'],
             user_data=input_data.user.to_native(),

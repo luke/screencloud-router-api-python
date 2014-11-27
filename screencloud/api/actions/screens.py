@@ -1,6 +1,6 @@
 from flask.ext.restful import Resource
 
-from screencloud import services
+from screencloud import config, services
 from screencloud.services import authorization
 from screencloud.common import utils, exceptions
 from .. import g, schemas
@@ -17,7 +17,7 @@ class GenerateTicket(Resource):
     Tickets are passed to screens by the remote app when connecting to the
     screen and attempting to take it over.
     """
-    def post(self, id):
+    def post(self):
         input_data = schemas.validate_input_structure(
             g.request, GenerateTicketInput
         )
@@ -25,7 +25,9 @@ class GenerateTicket(Resource):
         authorization.assert_can_generate_screen_ticket_for_network(
             g.connections, g.auth, network_id
         )
-        ticket = services.screens.create_ticket(g.connections, network_id)
+        ticket = services.screens.create_ticket_for_network(
+            g.connections, network_id
+        )
         return {
             'ticket': ticket
         }
@@ -40,18 +42,12 @@ class ExchangeTicket(Resource):
         input_data = schemas.validate_input_structure(
             g.request, ExchangeTicketInput
         )
-        network = services.screens.lookup_network_from_ticket(input_data.ticket)
-
-        # TODO...
-        import uuid
-        screen_id = uuid.uuid4().hex
-
-        jwt = services.subhub.create_jwt_for_screen(
-            g.connections,
-            user_id=g.auth.context['user'],
-            network_id=input_data.network_id
+        uuid, jwt = services.screens.exchange_ticket_for_access(
+            g.connections, input_data.ticket
         )
+
         return {
             'uri': config.get('SUBHUB_URI'),
-            'jwt': jwt
+            'uuid': uuid,
+            'token': jwt
         }
